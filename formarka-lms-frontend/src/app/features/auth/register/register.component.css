@@ -1,0 +1,120 @@
+.auth-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: linear-gradient(135deg, var(--formarka-primary) 0%, #333 100%);
+}
+
+.auth-card {
+  background: var(--formarka-white);
+  padding: 40px;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  width: 100%;
+  max-width: 500px;
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.logo {
+  height: 50px;
+  margin-bottom: 24px;
+}
+
+.auth-header h1 {
+  font-size: 1.8rem;
+  margin-bottom: 8px;
+}
+
+.auth-header p {
+  color: var(--formarka-text-muted);
+}
+
+.terms {
+  margin-bottom: 24px;
+  font-size: 0.9rem;
+  color: var(--formarka-text-muted);
+}
+
+.terms input {
+  margin-right: 8px;
+}
+
+.terms a {
+  color: var(--formarka-accent);
+  text-decoration: none;
+}
+
+.auth-footer {
+  margin-top: 32px;
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--formarka-text-muted);
+}
+
+.auth-footer a {
+  color: var(--formarka-primary);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.modal-card {
+  background: white;
+  padding: 40px 30px;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+  animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.modal-icon {
+  font-size: 3.5rem;
+  margin-bottom: 20px;
+  display: block;
+}
+
+.modal-card h2 {
+  font-size: 1.5rem;
+  color: var(--formarka-black, #1a1a1a);
+  margin-bottom: 16px;
+  font-weight: 700;
+}
+
+.modal-card p {
+  color: var(--formarka-text-muted);
+  font-size: 1rem;
+  margin-bottom: 30px;
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+.modal-card app-button {
+  width: 100%;
+}

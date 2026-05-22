@@ -1,0 +1,66 @@
+<div class="auth-container">
+  <div class="auth-card">
+    <div class="auth-header">
+      <img src="logo formarka.png" alt="Formarka Logo" class="logo" onerror="this.src='https://via.placeholder.com/150x50?text=FORMARKA'">
+      <h1>Crea tu cuenta</h1>
+      <p>Únete a la comunidad de Formarka y empieza a aprender</p>
+    </div>
+
+    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+      <app-form-field
+        label="Nombre Completo"
+        [control]="getControl('name')"
+        placeholder="Juan Pérez">
+      </app-form-field>
+
+      <app-form-field
+        label="Correo Electrónico"
+        [control]="getControl('email')"
+        type="email"
+        placeholder="tu@email.com">
+      </app-form-field>
+
+      <app-form-field
+        label="Contraseña"
+        [control]="getControl('password')"
+        type="password"
+        placeholder="012345">
+      </app-form-field>
+
+      <app-form-field
+        label="Confirmar Contraseña"
+        [control]="getControl('confirmPassword')"
+        type="password"
+        placeholder="012345">
+      </app-form-field>
+
+      <div class="terms">
+        <label>
+          <input type="checkbox" formControlName="acceptTerms">
+          Acepto los <a href="#">términos y condiciones</a>
+        </label>
+      </div>
+
+      <app-button 
+        type="submit" 
+        [loading]="isLoading" 
+        [disabled]="registerForm.invalid">
+        Registrarse
+      </app-button>
+    </form>
+
+    <div class="auth-footer">
+      <p>¿Ya tienes una cuenta? <a routerLink="/auth/login">Inicia sesión</a></p>
+    </div>
+  </div>
+
+  <!-- Error Modal -->
+  <div class="modal-overlay" *ngIf="showErrorModal">
+    <div class="modal-card">
+      <span class="modal-icon">⚠️</span>
+      <h2>¡Ups! Algo salió mal</h2>
+      <p>{{ errorMessage }}</p>
+      <app-button (click)="closeErrorModal()">Entendido</app-button>
+    </div>
+  </div>
+</div>

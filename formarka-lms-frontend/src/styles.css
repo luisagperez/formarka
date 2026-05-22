@@ -1,0 +1,154 @@
+/* Formarka LMS - Brand Identity & Global Styles */
+:root {
+  /* Exact Brand Colors */
+  --brand-black: #141414;
+  --brand-purple-deep: #4E0767;
+  --brand-purple-light: #CA63F0;
+  --brand-green-vibrant: #00D800;
+  --brand-green-olive: #739642;
+
+  /* Functional Mappings */
+  --formarka-primary: var(--brand-purple-deep);
+  --formarka-secondary: var(--brand-green-vibrant);
+  --formarka-accent: var(--brand-purple-light);
+  --formarka-bg-dark: var(--brand-black);
+  --formarka-bg-light: #fdfbff; /* Subtle tint for contrast */
+  --formarka-text: var(--brand-black);
+  --formarka-text-muted: #555555;
+  --formarka-white: #ffffff;
+  
+  /* Layout */
+  --sidebar-width: 300px;
+  --header-height: 80px;
+  
+  /* Fonts */
+  --font-main: 'Plus Jakarta Sans', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-main);
+  background-color: var(--formarka-bg-light);
+  color: var(--formarka-text);
+  line-height: 1.75;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4 {
+  color: var(--brand-black);
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+/* Sophisticated Typography */
+.text-gradient {
+  background: linear-gradient(90deg, var(--brand-purple-deep), var(--brand-purple-light));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-up {
+  animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-fade {
+  animation: fadeIn 1s ease forwards;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--formarka-bg-light);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--brand-purple-light);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--brand-purple-deep);
+}
+
+/* Global Container */
+.container {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* Glassmorphism Utility */
+.glass {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Modal Global Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  animation: fadeIn 0.3s ease;
+}
+
+.modal-card {
+  background: white;
+  padding: 40px;
+  border-radius: 32px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  text-align: center;
+}
+
+.modal-card h2 {
+  margin-bottom: 16px;
+  font-size: 1.8rem;
+}
+
+.modal-card p {
+  margin-bottom: 30px;
+  color: var(--formarka-text-muted);
+  font-size: 1.1rem;
+}
+
+.modal-icon {
+  font-size: 3rem;
+  margin-bottom: 20px;
+}
+

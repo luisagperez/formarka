@@ -7,6 +7,7 @@ import { DashboardComponent } from './features/learning/dashboard/dashboard.comp
 import { adminGuard } from './core/guards/admin.guard';
 
 export const routes: Routes = [
+  { path: '', redirectTo: 'auth/login', pathMatch: 'full' },
   { 
     path: 'auth', 
     loadChildren: () => import('./features/auth/auth.routes').then(m => m.AUTH_ROUTES) 
@@ -23,8 +24,8 @@ export const routes: Routes = [
         path: 'admin', 
         canActivate: [adminGuard],
         loadChildren: () => import('./features/admin/admin.routes').then(m => m.ADMIN_ROUTES) 
-      },
-      { path: '', redirectTo: 'courses', pathMatch: 'full' }
+      }
     ]
-  }
+  },
+  { path: '**', redirectTo: 'auth/login' } // Catch-all route to login
 ];

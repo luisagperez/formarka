@@ -43,28 +43,17 @@ import { CommonModule } from '@angular/common';
     }
 
     .btn-primary {
-      background: linear-gradient(135deg, var(--brand-purple-deep), var(--brand-purple-light));
+      background: linear-gradient(135deg, var(--brand-green-vibrant), var(--brand-purple-deep), var(--brand-green-vibrant));
+      background-size: 200% auto;
       color: var(--formarka-white);
-      box-shadow: 0 10px 20px -10px var(--brand-purple-deep);
-    }
-
-    .btn-primary::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: linear-gradient(135deg, var(--brand-green-vibrant), var(--brand-purple-deep));
-      z-index: -1;
-      opacity: 0;
-      transition: opacity 0.4s ease;
+      box-shadow: 0 10px 25px -8px rgba(0, 216, 0, 0.4);
+      transition: all 0.5s ease;
     }
 
     .btn-primary:hover:not(:disabled) {
-      transform: translateY(-4px) scale(1.02);
-      box-shadow: 0 15px 30px -10px var(--brand-purple-deep);
-    }
-
-    .btn-primary:hover::before {
-      opacity: 1;
+      transform: translateY(-4px) scale(1.03);
+      background-position: right center;
+      box-shadow: 0 15px 35px -10px rgba(78, 7, 103, 0.5);
     }
 
     .btn-outline {

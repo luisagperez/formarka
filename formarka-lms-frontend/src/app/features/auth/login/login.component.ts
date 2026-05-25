@@ -64,13 +64,13 @@ export class LoginComponent {
       this.authService.login(email, password).subscribe({
         next: (user) => {
           this.isLoading = false;
-          console.log('Login exitoso:', user);
           // Redirect to the courses page or dashboard
           this.router.navigate(['/']);
         },
         error: (err) => {
           this.isLoading = false;
-          this.errorMessage = err.message || 'Error al iniciar sesión. Por favor verifica tus credenciales.';
+          // Always use a generic message for security
+          this.errorMessage = 'Los datos ingresados no coinciden con nuestros registros. Inténtalo de nuevo.';
           this.showErrorModal = true;
         }
       });

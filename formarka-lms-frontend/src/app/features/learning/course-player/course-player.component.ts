@@ -6,12 +6,14 @@ import { Course, Lesson, Module } from '../../../core/models/course.model';
 import { CourseService } from '../../../core/services/course.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { QuizComponent } from '../quiz/quiz.component';
+import { CommentsSectionComponent } from '../../../shared/components/comments/comments-section.component';
 
 @Component({
   selector: 'app-course-player',
   standalone: true,
-  imports: [CommonModule, SafePipe, RouterModule, QuizComponent],
+  imports: [CommonModule, RouterModule, SafePipe, QuizComponent, CommentsSectionComponent],
   templateUrl: './course-player.component.html',
+
   styleUrl: './course-player.component.css'
 })
 export class CoursePlayerComponent implements OnInit {
@@ -22,6 +24,12 @@ export class CoursePlayerComponent implements OnInit {
   userName: string = '';
   isSidebarOpen: boolean = true;
   window = window;
+
+  // New UX state
+  isInfoExpanded = false;
+  showAutoProgressToast = false;
+  completionProgress = 0;
+  private completionInterval: any;
   
   constructor(
     public courseService: CourseService,
@@ -41,6 +49,19 @@ export class CoursePlayerComponent implements OnInit {
     if (window.innerWidth <= 1024) {
       this.isSidebarOpen = false;
     }
+
+    // Simulate video end detection for the prototype
+    this.setupVideoCompletionListener();
+  }
+
+  setupVideoCompletionListener() {
+    // In a real app with YouTube IFrame API, we would listen for StateChange === ENDED
+    // For this prototype, we'll simulate it by auto-completing after 15 seconds on a video lesson
+    setTimeout(() => {
+      if (this.currentLesson?.type === 'video' && !this.currentLesson.isCompleted) {
+        this.markAsCompleted();
+      }
+    }, 15000);
   }
 
   toggleSidebar() {
@@ -52,11 +73,26 @@ export class CoursePlayerComponent implements OnInit {
       if (course) {
         this.course = course;
         this.updateProgress();
-        if (course.modules && course.modules.length > 0 && course.modules[0].lessons.length > 0) {
+        
+        // Learning Continuity: Start where you left off
+        const lastLessonId = this.courseService.getLastActivity(course.id);
+        if (lastLessonId) {
+          const foundLesson = this.findLessonById(course, lastLessonId);
+          this.currentLesson = foundLesson || (course.modules?.[0]?.lessons?.[0]);
+        } else if (course.modules && course.modules.length > 0 && course.modules[0].lessons.length > 0) {
           this.currentLesson = course.modules[0].lessons[0];
         }
       }
     });
+  }
+
+  private findLessonById(course: Course, id: string): Lesson | undefined {
+    if (!course.modules) return undefined;
+    for (const module of course.modules) {
+      const lesson = module.lessons.find(l => l.id === id);
+      if (lesson) return lesson;
+    }
+    return undefined;
   }
 
   updateProgress() {
@@ -70,9 +106,18 @@ export class CoursePlayerComponent implements OnInit {
 
   selectLesson(lesson: Lesson): void {
     this.currentLesson = lesson;
+    if (this.course) {
+      this.courseService.saveLastActivity(this.course.id, lesson.id);
+    }
+    // Reset info expansion for new lesson
+    this.isInfoExpanded = false;
   }
 
   toggleModule(module: Module): void {
+    // Optional: Close other modules for a cleaner "Accordion" effect
+    if (!module.isOpen) {
+      this.course?.modules?.forEach(m => m.isOpen = false);
+    }
     module.isOpen = !module.isOpen;
   }
 
@@ -81,6 +126,10 @@ export class CoursePlayerComponent implements OnInit {
       this.currentLesson.isCompleted = true;
       this.courseService.completeLesson(this.course.id, this.currentLesson.id);
       this.updateProgress();
+      
+      // Show automatic feedback
+      this.showAutoProgressToast = true;
+      setTimeout(() => this.showAutoProgressToast = false, 3000);
     }
   }
 

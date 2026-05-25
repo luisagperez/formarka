@@ -270,14 +270,13 @@ export class CourseService {
 
   private PROGRESS_KEY = 'f-lms-progress';
   private LAST_ACTIVITY_KEY = 'f-lms-last-activity';
+  private ENROLLMENT_KEY = 'f-lms-enrollments';
 
   getCourses(): Observable<Course[]> {
-    // BACKEND REQUEST: return this.http.get<Course[]>('/api/courses');
     return of(this.injectProgress(this._courses)).pipe(delay(400));
   }
 
   getCourse(id: string): Observable<Course | undefined> {
-    // BACKEND REQUEST: return this.http.get<Course>(`/api/courses/${id}`);
     const course = this._courses.find(c => c.id === id);
     if (course) {
       return of(this.injectProgress([course])[0]).pipe(delay(300));
@@ -285,18 +284,26 @@ export class CourseService {
     return of(undefined).pipe(delay(300));
   }
 
+  isEnrolled(courseId: string): boolean {
+    const enrollments = this.getEnrollments();
+    return enrollments.includes(courseId);
+  }
+
+  private getEnrollments(): string[] {
+    const data = localStorage.getItem(this.ENROLLMENT_KEY);
+    return data ? JSON.parse(data) : [];
+  }
+
   /**
    * TEACHER & ADMIN: Course Management
    */
   createCourse(course: Course): Observable<Course> {
-    // BACKEND REQUEST: return this.http.post<Course>('/api/courses', course);
     const newCourse = { ...course, id: Math.random().toString(36).substring(2, 9) };
     this._courses.push(newCourse);
     return of(newCourse).pipe(delay(600));
   }
 
   updateCourse(id: string, course: Partial<Course>): Observable<Course | undefined> {
-    // BACKEND REQUEST: return this.http.put<Course>(`/api/courses/${id}`, course);
     const index = this._courses.findIndex(c => c.id === id);
     if (index !== -1) {
       this._courses[index] = { ...this._courses[index], ...course };
@@ -306,7 +313,6 @@ export class CourseService {
   }
 
   deleteCourse(id: string): Observable<boolean> {
-    // BACKEND REQUEST: return this.http.delete<boolean>(`/api/courses/${id}`);
     const initialLength = this._courses.length;
     this._courses = this._courses.filter(c => c.id !== id);
     return of(this._courses.length < initialLength).pipe(delay(500));
@@ -316,22 +322,17 @@ export class CourseService {
    * TEACHER: Grading and Students
    */
   getEnrolledStudents(courseId: string): Observable<StudentProgress[]> {
-    // BACKEND REQUEST: return this.http.get<StudentProgress[]>(`/api/courses/${courseId}/students`);
     const course = this._courses.find(c => c.id === courseId);
     return of(course?.enrolledStudents || []).pipe(delay(400));
   }
 
   gradeDeliverable(courseId: string, studentId: string, grade: number, feedback: string): Observable<boolean> {
-    // BACKEND REQUEST: 
-    // return this.http.post<boolean>(`/api/courses/${courseId}/students/${studentId}/grade`, { grade, feedback });
-
     console.log(`Mock: Grading student ${studentId} in course ${courseId} with ${grade}`);
     const course = this._courses.find(c => c.id === courseId);
     if (course && course.enrolledStudents) {
       const student = course.enrolledStudents.find(s => s.studentId === studentId);
       if (student) {
         student.grade = grade;
-        // In a real app, we might also update the deliverable status
         return of(true).pipe(delay(600));
       }
     }
@@ -339,9 +340,6 @@ export class CourseService {
   }
 
   uploadResource(courseId: string, lessonId: string, resource: Resource): Observable<Resource> {
-    // BACKEND REQUEST: 
-    // return this.http.post<Resource>(`/api/courses/${courseId}/lessons/${lessonId}/resources`, resource);
-
     console.log(`Mock: Uploading resource to lesson ${lessonId} in course ${courseId}`);
     const course = this._courses.find(c => c.id === courseId);
     if (course && course.modules) {
@@ -362,7 +360,6 @@ export class CourseService {
    * ADMIN: Assign Teacher to Course
    */
   assignTeacher(courseId: string, teacherId: string, teacherName: string): Observable<boolean> {
-    // BACKEND REQUEST: return this.http.post<boolean>(`/api/admin/courses/${courseId}/assign`, { teacherId });
     const course = this._courses.find(c => c.id === courseId);
     if (course) {
       course.instructorId = teacherId;
@@ -377,22 +374,37 @@ export class CourseService {
    */
   enroll(courseId: string): Observable<boolean> {
     console.log(`Mock: Enrolling in course: ${courseId}`);
-    // BACKEND REQUEST: return this.http.post<boolean>('/api/learning/enroll', { courseId });
-
-    const course = this._courses.find(c => c.id === courseId);
-    if (course) {
-      if (!course.enrolledStudents) course.enrolledStudents = [];
-      // Simulating adding current user to enrolled students
-      // course.enrolledStudents.push({ studentId: 'current', studentName: 'Current User', progress: 0 });
-      return of(true).pipe(delay(1000));
+    const enrollments = this.getEnrollments();
+    if (!enrollments.includes(courseId)) {
+      enrollments.push(courseId);
+      localStorage.setItem(this.ENROLLMENT_KEY, JSON.stringify(enrollments));
     }
-    return of(false);
+    return of(true).pipe(delay(1000));
+  }
+
+  saveLastActivity(courseId: string, lessonId: string): void {
+    const activity = this.getAllLastActivity();
+    activity[courseId] = lessonId;
+    localStorage.setItem(this.LAST_ACTIVITY_KEY, JSON.stringify(activity));
+  }
+
+  getLastActivity(courseId: string): string | null {
+    const activity = this.getAllLastActivity();
+    return activity[courseId] || null;
+  }
+
+  private getAllLastActivity(): { [key: string]: string } {
+    const data = localStorage.getItem(this.LAST_ACTIVITY_KEY);
+    return data ? JSON.parse(data) : {};
   }
 
   completeLesson(courseId: string, lessonId: string): void {
     const progress = this.getAllProgress();
     progress[`${courseId}_${lessonId}`] = true;
     localStorage.setItem(this.PROGRESS_KEY, JSON.stringify(progress));
+    
+    // Save as last activity too
+    this.saveLastActivity(courseId, lessonId);
   }
 
   private getAllProgress(): { [key: string]: boolean } {

@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CourseService } from '../../../core/services/course.service';
-import { Course } from '../../../core/models/course.model';
+import { Course, Module } from '../../../core/models/course.model';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 
 @Component({
@@ -34,12 +34,16 @@ import { ButtonComponent } from '../../../shared/components/button/button.compon
             </div>
 
             <div class="actions">
-              <app-button (onClick)="enroll()" [loading]="isEnrolling">
-                Empieza tu transformación
+              <app-button (onClick)="handleCourseAction()" [loading]="isEnrolling">
+                {{ isEnrolled ? 'Continuar tu formación' : 'Empieza tu transformación' }}
               </app-button>
-              <div class="price-badge glass">
+              <div class="price-badge glass" *ngIf="!isEnrolled">
                 <span class="icon">✨</span>
                 Acceso Premium
+              </div>
+              <div class="progress-info" *ngIf="isEnrolled">
+                <span class="label">Tu progreso:</span>
+                <span class="value">{{ progress }}%</span>
               </div>
             </div>
           </div>
@@ -84,23 +88,35 @@ import { ButtonComponent } from '../../../shared/components/button/button.compon
 
           <div class="syllabus">
             <h3>Plan de Estudios</h3>
-            <div class="module-card animate-up" *ngFor="let module of course.modules; let i = index" [style.animation-delay]="0.4 + (i * 0.1) + 's'">
-              <div class="module-header">
+            <div 
+              class="module-card" 
+              *ngFor="let module of course.modules; let i = index" 
+              [class.is-open]="module.isOpen"
+            >
+              <!-- Interactive Header to open/close -->
+              <div class="module-header" (click)="toggleModule(module)">
                 <div class="module-title">
                   <span class="module-num">{{ i + 1 }}</span>
                   <h4>{{ module.title }}</h4>
                 </div>
-                <span class="lesson-count">{{ module.lessons.length }} lecciones</span>
+                <div class="header-right">
+                  <span class="lesson-count">{{ module.lessons.length }} lecciones</span>
+                  <span class="chevron" [class.rotated]="module.isOpen">▼</span>
+                </div>
               </div>
-              <ul class="lesson-list">
-                <li *ngFor="let lesson of module.lessons">
-                  <div class="lesson-info">
-                    <span class="play-icon">▶</span>
-                    <span class="lesson-name">{{ lesson.title }}</span>
-                  </div>
-                  <span class="duration">{{ lesson.duration || '15:00' }}</span>
-                </li>
-              </ul>
+
+              <!-- Collapsible Body -->
+              <div class="lesson-list-container" [style.max-height]="module.isOpen ? '1000px' : '0'">
+                <ul class="lesson-list">
+                  <li *ngFor="let lesson of module.lessons">
+                    <div class="lesson-info">
+                      <span class="play-icon">▶</span>
+                      <span class="lesson-name">{{ lesson.title }}</span>
+                    </div>
+                    <span class="duration">{{ lesson.duration || '15:00' }}</span>
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
         </div>
@@ -133,9 +149,7 @@ import { ButtonComponent } from '../../../shared/components/button/button.compon
     </div>
   `,
   styles: [`
-    .course-detail-container {
-      background: var(--formarka-bg-light);
-    }
+    .course-detail-container { background: var(--formarka-bg-light); }
 
     .hero {
       background: linear-gradient(135deg, var(--brand-black) 0%, var(--brand-purple-deep) 100%);
@@ -146,247 +160,114 @@ import { ButtonComponent } from '../../../shared/components/button/button.compon
       overflow: hidden;
     }
 
-    .hero::after {
-      content: '';
-      position: absolute;
-      bottom: -50px;
-      right: -50px;
-      width: 300px;
-      height: 300px;
-      background: var(--brand-green-vibrant);
-      filter: blur(150px);
-      opacity: 0.15;
-    }
-
-    .hero-grid {
-      display: grid;
-      grid-template-columns: 1.2fr 1fr;
-      gap: 60px;
-      align-items: center;
-    }
-
-    .breadcrumb {
-      font-size: 0.95rem;
-      margin-bottom: 24px;
-      font-weight: 600;
-      display: flex;
-      gap: 10px;
-      opacity: 0.8;
-    }
-
-    .breadcrumb a { color: var(--brand-purple-light); text-decoration: none; }
-    .breadcrumb .sep { color: #555; }
+    .hero-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 60px; align-items: center; }
 
     .hero-title {
       color: var(--formarka-white);
-      font-size: 4rem;
+      font-size: 3.5rem;
       margin-bottom: 24px;
       line-height: 1.1;
       letter-spacing: -2px;
     }
 
-    .description {
-      font-size: 1.3rem;
-      margin-bottom: 40px;
-      opacity: 0.9;
-      line-height: 1.5;
-      max-width: 600px;
-    }
+    .description { font-size: 1.2rem; margin-bottom: 40px; opacity: 0.9; line-height: 1.5; }
 
-    .meta-info {
-      display: flex;
-      gap: 60px;
-      margin-bottom: 50px;
-    }
+    .meta-info { display: flex; gap: 40px; margin-bottom: 50px; }
+    .meta-item .label { display: block; font-size: 0.7rem; text-transform: uppercase; color: var(--brand-purple-light); margin-bottom: 4px; font-weight: 800; }
+    .meta-item .value { font-weight: 700; font-size: 1.1rem; }
 
-    .meta-item .label {
-      display: block;
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      color: var(--brand-purple-light);
-      margin-bottom: 8px;
-      font-weight: 800;
-    }
-
-    .meta-item .value {
-      font-weight: 700;
-      font-size: 1.2rem;
-    }
-
-    .level-val { color: var(--brand-green-vibrant); }
-
-    .actions {
-      display: flex;
-      align-items: center;
-      gap: 30px;
-    }
-
-    .price-badge {
-      padding: 10px 24px;
-      border-radius: 100px;
-      font-weight: 800;
-      color: var(--brand-purple-light);
-      border-color: rgba(202, 99, 240, 0.2);
-    }
+    .actions { display: flex; align-items: center; gap: 20px; }
 
     .hero-image-container .image-wrapper {
-      position: relative;
       border-radius: 40px;
       overflow: hidden;
       box-shadow: 0 30px 70px rgba(0,0,0,0.5);
-      border: 4px solid rgba(255,255,255,0.1);
     }
+    .hero-image-container img { width: 100%; display: block; }
 
-    .hero-image-container img {
-      width: 100%;
-      display: block;
-    }
+    .content-grid { display: grid; grid-template-columns: 1fr 380px; gap: 60px; padding-bottom: 100px; }
 
-    .content-grid {
-      display: grid;
-      grid-template-columns: 1fr 380px;
-      gap: 60px;
-      padding-bottom: 100px;
-    }
+    .info-card { padding: 40px; border-radius: 32px; margin-bottom: 40px; background: white; border: 1px solid #eee; }
 
-    .info-card {
-      padding: 50px;
-      border-radius: 40px;
-      margin-bottom: 60px;
-      background: white;
-    }
+    .learning-points { background: #fafafa; padding: 30px; border-radius: 24px; margin-top: 30px; }
+    .points-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .point { display: flex; gap: 12px; font-weight: 600; font-size: 0.95rem; }
+    .point .check { color: var(--brand-green-vibrant); }
 
-    h2 { font-size: 2.2rem; margin-bottom: 30px; color: var(--brand-black); }
-    h3 { font-size: 1.6rem; margin-bottom: 30px; color: var(--brand-purple-deep); }
-
-    .main-info p {
-      font-size: 1.15rem;
-      color: var(--formarka-text-muted);
-      margin-bottom: 50px;
-      line-height: 1.7;
-    }
-
-    .learning-points {
-      background: #fafafa;
-      padding: 40px;
-      border-radius: 30px;
-      border: 1px solid #eee;
-    }
-
-    .points-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 24px;
-    }
-
-    .point {
-      display: flex;
-      gap: 15px;
-      font-weight: 600;
-      color: var(--brand-black);
-    }
-
-    .point .check {
-      color: var(--brand-green-vibrant);
-      font-weight: 900;
-    }
+    /* Accordion Syllabus Styles */
+    .syllabus h3 { font-size: 1.8rem; margin-bottom: 30px; }
 
     .module-card {
       background: white;
-      border-radius: 24px;
-      margin-bottom: 24px;
-      border: 1px solid #eee;
+      border-radius: 20px;
+      margin-bottom: 16px;
+      border: 1.5px solid #f0f0f0;
       overflow: hidden;
       transition: all 0.3s ease;
     }
 
-    .module-card:hover {
-      box-shadow: 0 10px 30px rgba(78, 7, 103, 0.05);
-      border-color: var(--brand-purple-light);
-    }
+    .module-card:hover { border-color: var(--brand-purple-light); }
+    .module-card.is-open { border-color: var(--brand-purple-deep); box-shadow: 0 10px 30px rgba(78, 7, 103, 0.05); }
 
     .module-header {
-      padding: 24px 30px;
+      padding: 20px 24px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       background: #fdfbff;
+      cursor: pointer;
+      user-select: none;
     }
 
-    .module-title {
-      display: flex;
-      align-items: center;
-      gap: 20px;
-    }
-
+    .module-title { display: flex; align-items: center; gap: 16px; }
     .module-num {
-      width: 36px;
-      height: 36px;
-      background: var(--brand-purple-deep);
-      color: white;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 800;
-      flex-shrink: 0;
+      width: 32px; height: 32px; background: var(--brand-purple-deep); color: white;
+      border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.8rem;
     }
 
-    .module-header h4 { margin: 0; font-size: 1.2rem; }
-    .lesson-count { font-weight: 700; font-size: 0.9rem; color: var(--brand-purple-light); }
+    .module-header h4 { margin: 0; font-size: 1.1rem; color: var(--brand-black); }
 
-    .lesson-list { list-style: none; padding: 10px 0; }
+    .header-right { display: flex; align-items: center; gap: 15px; }
+    .lesson-count { font-weight: 700; font-size: 0.85rem; color: var(--formarka-text-muted); }
+    .chevron { color: var(--brand-purple-light); font-size: 0.8rem; transition: transform 0.3s ease; }
+    .chevron.rotated { transform: rotate(180deg); }
+
+    .lesson-list-container {
+      overflow: hidden;
+      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .lesson-list { list-style: none; padding: 0; border-top: 1px solid #f9f9f9; }
     .lesson-list li {
-      padding: 16px 30px;
+      padding: 14px 24px 14px 64px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      transition: background 0.2s;
+      border-bottom: 1px solid #fafafa;
     }
 
-    .lesson-list li:hover { background: #f9f9f9; }
+    .lesson-info { display: flex; align-items: center; gap: 12px; }
+    .play-icon { color: var(--brand-purple-light); font-size: 0.7rem; opacity: 0.5; }
+    .lesson-name { font-weight: 600; font-size: 0.9rem; color: #444; }
+    .duration { color: var(--formarka-text-muted); font-size: 0.8rem; font-weight: 700; }
 
-    .lesson-info { display: flex; align-items: center; gap: 15px; }
-    .play-icon { color: var(--brand-purple-light); font-size: 0.8rem; }
-    .lesson-name { font-weight: 600; color: var(--formarka-text); }
-    .duration { color: var(--formarka-text-muted); font-size: 0.85rem; font-weight: 700; }
-
-    .sticky-card {
-      position: sticky;
-      top: 120px;
-      padding: 40px;
-      border-radius: 40px;
-      background: white;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.05);
-    }
-
+    .sticky-card { position: sticky; top: 100px; padding: 40px; border-radius: 32px; background: white; border: 1px solid #eee; box-shadow: 0 20px 50px rgba(0,0,0,0.05); }
     .divider { height: 1px; background: #eee; margin: 30px 0; }
-
-    .features { display: flex; flex-direction: column; gap: 20px; }
-    .feature { display: flex; align-items: center; gap: 15px; font-weight: 700; color: var(--brand-black); font-size: 0.95rem; }
-    .feat-icon { font-size: 1.2rem; }
-
-    .full-width { width: 100%; }
-
-    @media (max-width: 1200px) {
-      .hero h1 { font-size: 3rem; }
-      .content-grid { grid-template-columns: 1fr; }
-      .sidebar { display: none; }
-    }
+    .features { display: flex; flex-direction: column; gap: 15px; }
+    .feature { display: flex; align-items: center; gap: 12px; font-weight: 700; color: #444; font-size: 0.9rem; }
 
     @media (max-width: 992px) {
-      .hero-grid { grid-template-columns: 1fr; text-align: center; }
-      .hero-content { display: flex; flex-direction: column; align-items: center; }
-      .meta-info { justify-content: center; }
-      .actions { flex-direction: column; width: 100%; }
-      .points-grid { grid-template-columns: 1fr; }
+      .hero h1 { font-size: 2.5rem; }
+      .hero-grid, .content-grid { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
     }
   `]
 })
 export class CourseDetailComponent implements OnInit {
   course?: Course;
   isEnrolling = false;
+  isEnrolled = false;
+  progress = 0;
 
   constructor(
     private route: ActivatedRoute,
@@ -399,23 +280,42 @@ export class CourseDetailComponent implements OnInit {
     if (id) {
       this.courseService.getCourse(id).subscribe(course => {
         this.course = course;
+        if (course) {
+          this.isEnrolled = this.courseService.isEnrolled(course.id);
+          this.progress = this.courseService.getCourseProgress(course.id);
+          // By default, only first module open
+          if (this.course?.modules && this.course.modules.length > 0) {
+            this.course.modules[0].isOpen = true;
+          }
+        }
       });
+    }
+  }
+
+  toggleModule(module: Module): void {
+    module.isOpen = !module.isOpen;
+  }
+
+  handleCourseAction(): void {
+    if (this.isEnrolled) {
+      this.router.navigate(['/learning', this.course?.id]);
+    } else {
+      this.enroll();
     }
   }
 
   enroll(): void {
     if (!this.course) return;
-    
     this.isEnrolling = true;
     this.courseService.enroll(this.course.id).subscribe({
       next: () => {
         this.isEnrolling = false;
-        // After enrollment, go to the player
+        this.isEnrolled = true;
         this.router.navigate(['/learning', this.course?.id]);
       },
       error: () => {
         this.isEnrolling = false;
-        alert('Hubo un error al matricularte. Inténtalo de nuevo.');
+        alert('Error al matricularte.');
       }
     });
   }

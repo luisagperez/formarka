@@ -1,130 +1,154 @@
-<div class="player-container" *ngIf="course" [class.sidebar-closed]="!isSidebarOpen">
-  <!-- Mobile Sidebar Toggle -->
-  <button class="sidebar-toggle" (click)="toggleSidebar()" [class.active]="isSidebarOpen" aria-label="Toggle navigation">
-    <span class="toggle-icon">{{ isSidebarOpen ? '✕' : '☰' }}</span>
-    <span class="toggle-text">Contenido del curso</span>
-  </button>
-
-  <!-- Sidebar for course navigation -->
-  <aside class="sidebar" [class.open]="isSidebarOpen">
-    <div class="sidebar-header">
-      <div class="logo-container" routerLink="/courses" style="cursor: pointer;">
-        <span class="brand-logo">FORMARKA</span>
+<div class="player-container" *ngIf="course">
+  <!-- Top Navigation Header -->
+  <header class="player-header">
+    <div class="header-left">
+      <div class="logo-area" [routerLink]="['/']" style="cursor: pointer;">
+        <img src="logo formarka.png" alt="Formarka Logo" class="logo-img">
       </div>
-      <h2>{{ course.title }}</h2>
-      <div class="progress-container">
-        <div class="progress-bar">
-          <div class="progress-fill" [style.width.%]="progress"></div>
-        </div>
-        <p class="progress-info">{{ progress }}% completado</p>
+      <a class="back-btn" [routerLink]="['/courses']" title="Ir al catálogo">
+        <span class="icon">←</span>
+        <span class="text">Inicio</span>
+      </a>
+      <div class="course-meta">
+        <span class="course-title">{{ course.title }}</span>
+        <span class="lesson-indicator" *ngIf="currentLesson">{{ currentLesson.title }}</span>
       </div>
     </div>
-
-    <div class="modules-list">
-      <div *ngFor="let module of course.modules" class="module-item">
-        <div class="module-title" (click)="toggleModule(module)">
-          <span>{{ module.title }}</span>
-          <span>{{ module.isOpen ? '▲' : '▼' }}</span>
+    
+    <div class="header-right">
+      <div class="overall-progress hide-mobile">
+        <div class="progress-stats">
+          <span class="percent">{{ progress }}%</span>
+          <span class="label">completado</span>
         </div>
-        
-        <ul class="lessons-list" *ngIf="module.isOpen">
-          <li 
-            *ngFor="let lesson of module.lessons" 
-            class="lesson-item"
-            [class.active]="currentLesson?.id === lesson.id"
-            (click)="selectLesson(lesson); (isSidebarOpen && window.innerWidth <= 1024) ? toggleSidebar() : null"
-          >
-            <div class="status-icon" [class.completed]="lesson.isCompleted">
-              <span *ngIf="lesson.isCompleted">✓</span>
-            </div>
-            <span>{{ lesson.title }}</span>
-          </li>
-        </ul>
+        <div class="mini-progress-bar">
+          <div class="fill" [style.width.%]="progress"></div>
+        </div>
       </div>
-    </div>
-
-    <div class="sidebar-footer" *ngIf="progress === 100">
-      <button class="cert-btn" (click)="downloadCertificate()">
-        🎓 Descargar Certificado
+      <button class="menu-toggle" (click)="toggleSidebar()" [class.active]="isSidebarOpen">
+        <span class="icon">{{ isSidebarOpen ? '✕' : '☰' }}</span>
+        <span class="text">Temario</span>
       </button>
     </div>
-  </aside>
+  </header>
 
-  <!-- Mobile Overlay -->
-  <div class="mobile-overlay" *ngIf="isSidebarOpen" (click)="toggleSidebar()"></div>
-
-  <!-- Main content area -->
-  <main class="main-content">
-    <!-- Celebration Modal -->
-    <div class="celebration-overlay" *ngIf="showCelebration">
-      <div class="celebration-card glass animate-up">
-        <div class="confetti-placeholder">🎉✨🥳</div>
-        <h1>¡Felicitaciones, {{ userName }}!</h1>
-        <p>Has completado exitosamente <strong>{{ course.title }}</strong>.</p>
-        <p>Tu dedicación y esfuerzo han dado frutos. ¡Sigue construyendo tu marca con criterio!</p>
-        <div class="celebration-actions">
-          <button class="btn btn-primary" (click)="downloadCertificate()">Obtener mi Certificado</button>
-          <button class="btn btn-outline" (click)="showCelebration = false">Continuar explorando</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Video Section -->
-    <section class="video-section" *ngIf="currentLesson?.type === 'video'">
-      <iframe 
-        *ngIf="currentLesson?.contentUrl"
-        [src]="currentLesson!.contentUrl! | safe" 
-        frameborder="0" 
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-        allowfullscreen
-      ></iframe>
-    </section>
-
-    <!-- Quiz Section -->
-    <section class="quiz-section" *ngIf="currentLesson?.type === 'quiz' && currentLesson?.quiz">
-      <app-quiz [quiz]="currentLesson!.quiz!" (onComplete)="markAsCompleted()"></app-quiz>
-    </section>
-
-    <!-- Deliverable Section -->
-    <section class="deliverable-section" *ngIf="currentLesson?.type === 'deliverable'">
-      <div class="deliverable-card glass">
-        <h3>📤 Envío de Entregable</h3>
-        <p>Para completar esta lección, debes subir tu trabajo para que el profesor pueda revisarlo.</p>
-        <div class="upload-placeholder">
-          <input type="file" id="fileUpload" hidden>
-          <label for="fileUpload" class="upload-btn">Seleccionar Archivo</label>
-          <span>PDF, JPG o PNG (Max 10MB)</span>
-        </div>
-        <button class="btn btn-primary" style="margin-top: 20px;" (click)="markAsCompleted()">Enviar para Revisión</button>
-      </div>
-    </section>
-
-    <!-- Lesson Info Section -->
-    <section class="content-info">
-      <div class="header-with-actions">
-        <h1>{{ currentLesson?.title }}</h1>
-        <div class="actions">
-          <button class="btn btn-primary" (click)="markAsCompleted()" [disabled]="currentLesson?.isCompleted">
-            {{ currentLesson?.isCompleted ? 'Completada ✓' : 'Marcar como completada' }}
-          </button>
-        </div>
-      </div>
-      
-      <p>Bienvenido a esta lección. Aquí aprenderás conceptos clave para fortalecer tu marca.</p>
-      
-      <!-- Resources Section -->
-      <div class="resources-container" *ngIf="currentLesson?.resources && currentLesson!.resources!.length > 0">
-        <h3>Recursos descargables</h3>
-        <div class="resource-list">
-          <a *ngFor="let res of currentLesson?.resources" [href]="res.url" class="resource-item" target="_blank">
-            <span class="res-icon">{{ res.type === 'pdf' ? '📄' : (res.type === 'link' ? '🔗' : '📦') }}</span>
-            <div class="res-info">
-              <span class="res-title">{{ res.title }}</span>
-              <span class="res-type">{{ res.type | uppercase }}</span>
+  <div class="player-body" [class.sidebar-closed]="!isSidebarOpen">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" [class.open]="isSidebarOpen">
+      <div class="sidebar-content">
+        <div class="modules-accordion">
+          <div *ngFor="let module of course.modules; let i = index" class="module-group" [class.module-open]="module.isOpen">
+            <div class="module-header" (click)="toggleModule(module)">
+              <div class="module-info">
+                <span class="module-index">Módulo {{ i + 1 }}</span>
+                <h3>{{ module.title }}</h3>
+              </div>
+              <span class="chevron">{{ module.isOpen ? '▲' : '▼' }}</span>
             </div>
-          </a>
+            
+            <div class="lessons-container" [class.is-open]="module.isOpen">
+              <ul class="lessons-list">
+                <li 
+                  *ngFor="let lesson of module.lessons" 
+                  class="lesson-item"
+                  [class.active]="currentLesson?.id === lesson.id"
+                  [class.is-completed]="lesson.isCompleted"
+                  (click)="selectLesson(lesson)"
+                >
+                  <div class="lesson-status">
+                    <span class="check-icon" *ngIf="lesson.isCompleted">✓</span>
+                    <span class="bullet" *ngIf="!lesson.isCompleted"></span>
+                  </div>
+                  <div class="lesson-detail">
+                    <span class="lesson-title">{{ lesson.title }}</span>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
-    </section>
-  </main>
+      <div class="sidebar-footer">
+        <button class="back-home-btn" [routerLink]="['/']">
+          ← Cerrar curso
+        </button>
+      </div>
+    </aside>
+
+    <!-- Overlay for mobile -->
+    <div class="mobile-overlay" *ngIf="isSidebarOpen" (click)="toggleSidebar()"></div>
+
+    <!-- Main Player Content -->
+    <main class="main-stage">
+      <div class="stage-container">
+        <!-- Video Section -->
+        <section class="video-container" *ngIf="currentLesson?.type === 'video'">
+          <div class="video-wrapper shadow-premium">
+            <iframe 
+              *ngIf="currentLesson?.contentUrl"
+              [src]="currentLesson!.contentUrl! | safe" 
+              frameborder="0" 
+              allowfullscreen
+            ></iframe>
+          </div>
+        </section>
+
+        <!-- Quiz Section -->
+        <section class="quiz-container" *ngIf="currentLesson?.type === 'quiz'">
+          <app-quiz [quiz]="currentLesson!.quiz!" (onComplete)="markAsCompleted()"></app-quiz>
+        </section>
+
+        <!-- Lesson Metadata & Comments -->
+        <section class="lesson-metadata">
+          <div class="info-card-premium glass">
+            <div class="card-header">
+              <div class="badge-row">
+                <span class="type-badge">{{ currentLesson?.type | uppercase }}</span>
+                <span class="completed-badge" *ngIf="currentLesson?.isCompleted">Completada</span>
+              </div>
+              <h1>{{ currentLesson?.title }}</h1>
+              <div class="toggle-action">
+                <button class="premium-toggle-btn" (click)="isInfoExpanded = !isInfoExpanded" [class.is-active]="isInfoExpanded">
+                  <span class="btn-text">{{ isInfoExpanded ? 'Ocultar descripción' : 'Ver descripción de la clase' }}</span>
+                  <span class="btn-icon">{{ isInfoExpanded ? '▲' : '▼' }}</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="card-body" *ngIf="isInfoExpanded">
+              <div class="rich-text">
+                <p>Bienvenido a esta lección estratégica. Aquí profundizaremos en los pilares que hacen que una marca sea memorable y coherente en el mercado actual.</p>
+              </div>
+
+              <!-- Resources -->
+              <div class="resources-grid" *ngIf="currentLesson?.resources?.length">
+                <a *ngFor="let res of currentLesson?.resources" [href]="res.url" target="_blank" class="res-card">
+                  <span class="res-icon">📄</span>
+                  <div class="res-text">
+                    <span class="name">{{ res.title }}</span>
+                    <span class="type">{{ res.type | uppercase }}</span>
+                  </div>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Comments Integration -->
+          <app-comments-section 
+            *ngIf="currentLesson" 
+            [lessonId]="currentLesson.id"
+          ></app-comments-section>
+        </section>
+      </div>
+
+      <!-- Auto-progress Notification -->
+      <div class="auto-toast glass animate-fade" *ngIf="showAutoProgressToast">
+        <span class="toast-icon">✨</span>
+        <div class="toast-content">
+          <span class="toast-title">¡Progreso actualizado!</span>
+          <span class="toast-desc">Lección completada automáticamente.</span>
+        </div>
+      </div>
+    </main>
+  </div>
 </div>

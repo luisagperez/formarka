@@ -36,17 +36,17 @@ export class AuthService {
   login(email: string, password: string): Observable<User> {
     console.log('Mock login initiated with:', email);
     
-    // Password must be '012345' as requested
-    if (password !== '012345') {
-      return throwError(() => new Error('Contraseña incorrecta. Debe ser del 0 al 5 (012345)'));
+    const user = this._users.find(u => u.email === email);
+    
+    // Generic error message for both wrong email and wrong password
+    const genericError = new Error('Credenciales inválidas. Por favor verifica tu correo y contraseña.');
+
+    if (!user || password !== '012345') {
+      return throwError(() => genericError);
     }
 
-    const user = this._users.find(u => u.email === email);
-    if (user) {
-      this.setCurrentUser(user);
-      return of(user).pipe(delay(800));
-    }
-    return throwError(() => new Error('Usuario no encontrado'));
+    this.setCurrentUser(user);
+    return of(user).pipe(delay(800));
   }
 
   private setCurrentUser(user: User): void {
@@ -59,6 +59,7 @@ export class AuthService {
     this.currentUserSignal.set(null);
     localStorage.removeItem('f-lms-token');
     localStorage.removeItem('f-lms-user');
+    window.location.href = '/auth/login'; // Redirect to login
   }
 
   /**

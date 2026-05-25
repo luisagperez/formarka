@@ -1,7 +1,8 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Course } from '../../../core/models/course.model';
 import { ButtonComponent } from '../button/button.component';
+import { CourseService } from '../../../core/services/course.service';
 
 @Component({
   selector: 'app-course-card',
@@ -20,9 +21,18 @@ import { ButtonComponent } from '../button/button.component';
         </div>
         <h3>{{ course.title }}</h3>
         <p>{{ course.description }}</p>
+
+        <!-- Progress Bar for enrolled courses -->
+        <div class="progress-container" *ngIf="isEnrolled">
+          <div class="progress-bar">
+            <div class="progress-fill" [style.width.%]="progress"></div>
+          </div>
+          <span class="progress-text">{{ progress }}% completado</span>
+        </div>
+
         <div class="card-footer">
           <app-button variant="outline" (onClick)="onAction.emit(course.id)">
-            Ver Curso
+            {{ isEnrolled ? 'Continuar' : 'Ver Curso' }}
           </app-button>
         </div>
       </div>
@@ -31,21 +41,42 @@ import { ButtonComponent } from '../button/button.component';
   styles: [`
     .course-card {
       background: var(--formarka-white);
-      border-radius: 32px;
+      border-radius: 50px; /* Modern oval/rounded shape */
       overflow: hidden;
-      box-shadow: 0 12px 40px rgba(78, 7, 103, 0.08);
+      box-shadow: 0 15px 45px rgba(0,0,0,0.06);
       transition: all 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
       display: flex;
       flex-direction: column;
       height: 100%;
-      border: 1px solid rgba(78, 7, 103, 0.05);
+      border: 1.5px solid rgba(78, 7, 103, 0.03);
       position: relative;
     }
 
     .course-card:hover {
-      transform: translateY(-12px);
-      box-shadow: 0 20px 60px rgba(78, 7, 103, 0.15);
+      transform: translateY(-15px) scale(1.02);
+      box-shadow: 0 30px 70px rgba(78, 7, 103, 0.12);
       border-color: rgba(78, 7, 103, 0.1);
+    }
+
+    .progress-container {
+      margin-bottom: 24px;
+    }
+    .progress-bar {
+      height: 6px;
+      background: #eee;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--brand-green-vibrant);
+      transition: width 1s ease-out;
+    }
+    .progress-text {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--formarka-text-muted);
     }
 
     .card-image {
@@ -139,7 +170,18 @@ import { ButtonComponent } from '../button/button.component';
     }
   `]
 })
-export class CourseCardComponent {
+export class CourseCardComponent implements OnInit {
   @Input({ required: true }) course!: Course;
   @Output() onAction = new EventEmitter<string>();
+
+  private courseService = inject(CourseService);
+  isEnrolled = false;
+  progress = 0;
+
+  ngOnInit(): void {
+    this.isEnrolled = this.courseService.isEnrolled(this.course.id);
+    if (this.isEnrolled) {
+      this.progress = this.courseService.getCourseProgress(this.course.id);
+    }
+  }
 }

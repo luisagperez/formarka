@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -24,7 +24,7 @@ import { CourseCardComponent } from '../../../shared/components/course-card/cour
             type="text" 
             [(ngModel)]="searchQuery" 
             (ngModelChange)="applyFilters()"
-            placeholder="Buscar cursos por título, instructor o descripción..."
+            [placeholder]="currentPlaceholder"
             class="search-input"
           />
         </div>
@@ -254,7 +254,7 @@ import { CourseCardComponent } from '../../../shared/components/course-card/cour
     }
   `]
 })
-export class CourseListComponent implements OnInit {
+export class CourseListComponent implements OnInit, OnDestroy {
   allCourses: Course[] = [];
   filteredCourses: Course[] = [];
   isLoading = true;
@@ -267,12 +267,29 @@ export class CourseListComponent implements OnInit {
   categories = ['Todos los Programas', 'Diseño', 'Marketing', 'Fotografía'];
   levels = ['all', 'básico', 'intermedio', 'avanzado'];
 
+  // Typing Placeholder
+  placeholderTexts = [
+    "Construye tu Marca", 
+    "Estrategia de Contenido para Redes", 
+    "Fotografía de Producto con Celular"
+  ];
+  currentPlaceholder = '';
+  private typingTextIndex = 0;
+  private isDeleting = false;
+  private typingTimer: any;
+  
+  // Parametrizable speeds (ms)
+  private typingSpeed = 100;
+  private deletingSpeed = 50;
+  private pauseBetweenWords = 2000;
+
   constructor(
     private courseService: CourseService,
     private router: Router
   ) {}
 
   ngOnInit(): void {
+    this.startTypingEffect();
     this.courseService.getCourses().subscribe({
       next: (data) => {
         this.allCourses = data;
@@ -284,6 +301,37 @@ export class CourseListComponent implements OnInit {
         this.isLoading = false;
       }
     });
+  }
+
+  ngOnDestroy(): void {
+    if (this.typingTimer) {
+      clearTimeout(this.typingTimer);
+    }
+  }
+
+  private startTypingEffect(): void {
+    const currentWord = this.placeholderTexts[this.typingTextIndex];
+    
+    if (this.isDeleting) {
+      this.currentPlaceholder = currentWord.substring(0, this.currentPlaceholder.length - 1);
+    } else {
+      this.currentPlaceholder = currentWord.substring(0, this.currentPlaceholder.length + 1);
+    }
+
+    let delta = this.isDeleting ? this.deletingSpeed : this.typingSpeed;
+
+    if (!this.isDeleting && this.currentPlaceholder === currentWord) {
+      delta = this.pauseBetweenWords;
+      this.isDeleting = true;
+    } else if (this.isDeleting && this.currentPlaceholder === '') {
+      this.isDeleting = false;
+      this.typingTextIndex = (this.typingTextIndex + 1) % this.placeholderTexts.length;
+      delta = 500; // Small pause before typing next word
+    }
+
+    this.typingTimer = setTimeout(() => {
+      this.startTypingEffect();
+    }, delta);
   }
 
   setCategory(category: string): void {

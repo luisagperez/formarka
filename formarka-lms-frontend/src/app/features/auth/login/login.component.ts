@@ -64,8 +64,8 @@ export class LoginComponent {
       this.authService.login(email, password).subscribe({
         next: (user) => {
           this.isLoading = false;
-          // Redirect to the courses page or dashboard
-          this.router.navigate(['/']);
+          // Redirect to the courses page
+          this.router.navigate(['/courses']);
         },
         error: (err) => {
           this.isLoading = false;

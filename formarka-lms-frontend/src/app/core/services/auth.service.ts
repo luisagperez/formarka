@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, computed } from '@angular/core';
 import { User } from '../models/user.model';
 import { Observable, of, throwError } from 'rxjs';
 import { delay, tap } from 'rxjs/operators';
@@ -14,7 +14,7 @@ import { delay, tap } from 'rxjs/operators';
 export class AuthService {
   // Mock users as requested: 2 admins, 2 teachers, 2 students
   private _users: User[] = [
-    { id: 'a1', email: 'admin1@formarka.com', name: 'Luisa administradora', role: 'admin' },
+    { id: 'a1', email: 'admin1@formarka.com', name: 'Luisa administradora', role: 'admin' }, 
     { id: 'a2', email: 'admin2@formarka.com', name: 'Camila administradora', role: 'admin' },
     { id: 't1', email: 'profesor1@formarka.com', name: 'Luis Instructor', role: 'teacher', specialty: 'Diseño de Marca' },
     { id: 't2', email: 'profesor2@formarka.com', name: 'Maria Experta', role: 'teacher', specialty: 'Marketing Digital' },
@@ -24,7 +24,7 @@ export class AuthService {
 
   private currentUserSignal = signal<User | null>(null);
   readonly currentUser = this.currentUserSignal.asReadonly();
-  readonly isAuthenticated = signal(false).asReadonly();
+  readonly isAuthenticated = computed(() => !!this.currentUserSignal());
 
   constructor() {
     this.checkSession();

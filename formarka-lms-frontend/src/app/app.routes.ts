@@ -5,17 +5,23 @@ import { CourseListComponent } from './features/learning/course-list/course-list
 import { CourseDetailComponent } from './features/learning/course-detail/course-detail.component';
 import { DashboardComponent } from './features/learning/dashboard/dashboard.component';
 import { adminGuard } from './core/guards/admin.guard';
+import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'auth/login', pathMatch: 'full' },
+  { path: '', redirectTo: 'courses', pathMatch: 'full' },
   { 
     path: 'auth', 
     loadChildren: () => import('./features/auth/auth.routes').then(m => m.AUTH_ROUTES) 
   },
-  { path: 'learning/:courseId', component: CoursePlayerComponent },
+  { 
+    path: 'learning/:courseId', 
+    component: CoursePlayerComponent,
+    canActivate: [authGuard]
+  },
   {
     path: '',
     component: MainLayoutComponent,
+    canActivate: [authGuard],
     children: [
       { path: 'courses', component: CourseListComponent },
       { path: 'courses/:id', component: CourseDetailComponent },
@@ -27,5 +33,5 @@ export const routes: Routes = [
       }
     ]
   },
-  { path: '**', redirectTo: 'auth/login' } // Catch-all route to login
+  { path: '**', redirectTo: 'courses' } // Catch-all route
 ];

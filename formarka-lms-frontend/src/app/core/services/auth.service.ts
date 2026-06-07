@@ -28,13 +28,47 @@ export class AuthService {
 
   constructor() {
     this.supabase = createClient(environment.supabaseUrl, environment.supabaseKey);
+    this.http = inject(HttpClient);
+    this.router = inject(Router);
     
-    // Listen for auth state changes
-    this.supabase.auth.onAuthStateChange((event, session) => {
+    // Listen for auth state changes (crucial for email verification redirects)
+    this.supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth State Change:', event);
       this.updateCurrentUser(session?.user ?? null);
+      
+      if (event === 'SIGNED_IN' && session) {
+        // When signing in (or returning from email confirmation), check if profile is complete
+        this.checkProfileAndRedirect(session.user.id);
+      }
     });
 
     this.checkInitialSession();
+  }
+
+  private router = inject(Router);
+
+  private async checkProfileAndRedirect(userId: string) {
+    const currentUrl = this.router.url;
+    
+    // Solo actuamos si el usuario está en una pantalla de autenticación
+    if (currentUrl.includes('/auth/')) {
+      try {
+        // Consultamos al backend si el perfil ya existe en PostgreSQL
+        const status = await this.http.get<{isProfileComplete: boolean}>(`${environment.apiUrl}/users/profile/status`).toPromise();
+        
+        if (status?.isProfileComplete) {
+          // Si el perfil ya está completo, vamos al dashboard/cursos
+          this.router.navigate(['/courses']);
+        } else {
+          // Si no existe en nuestra DB, debe completar perfil
+          this.router.navigate(['/auth/complete-profile']);
+        }
+      } catch (error) {
+        console.error('Error al verificar estado del perfil:', error);
+        // Por seguridad, si falla la verificación, lo mandamos a completar
+        this.router.navigate(['/auth/complete-profile']);
+      }
+    }
   }
 
   private updateCurrentUser(supabaseUser: SupabaseUser | null): void {

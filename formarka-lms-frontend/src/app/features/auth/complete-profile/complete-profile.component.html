@@ -1,0 +1,54 @@
+<div class="auth-container">
+  <div class="auth-card">
+    <div class="auth-header">
+      <img src="/logo%20formarka.png" alt="Formarka Logo" class="logo" onerror="this.src='https://placehold.co/150x50?text=FORMARKA'">
+      <h1>¡Bienvenido a Formarka!</h1>
+      <p>Completa tu perfil para empezar a aprender</p>
+    </div>
+
+    <form [formGroup]="profileForm" (ngSubmit)="onSubmit()">
+      <app-form-field
+        label="Nombre Completo"
+        [control]="getControl('name')"
+        placeholder="Juan Pérez">
+      </app-form-field>
+
+      <div class="form-group">
+        <label>¿Cuál es tu rol?</label>
+        <select formControlName="role" class="form-select">
+          <option *ngFor="let r of roles" [value]="r.value">{{ r.label }}</option>
+        </select>
+      </div>
+
+      <app-form-field
+        *ngIf="profileForm.get('role')?.value === 'Teacher'"
+        label="Especialidad / Título Profesional"
+        [control]="getControl('specialty')"
+        placeholder="Ej: Marketing Digital, Fotografía...">
+      </app-form-field>
+
+      <app-form-field
+        label="URL de Foto de Perfil (Opcional)"
+        [control]="getControl('photoUrl')"
+        placeholder="https://ejemplo.com/mifoto.jpg">
+      </app-form-field>
+
+      <app-button 
+        type="submit" 
+        [loading]="isLoading" 
+        [disabled]="profileForm.invalid">
+        Finalizar Registro
+      </app-button>
+    </form>
+  </div>
+
+  <!-- Error Modal -->
+  <div class="modal-overlay" *ngIf="showErrorModal">
+    <div class="modal-card">
+      <span class="modal-icon">⚠️</span>
+      <h2>¡Ups! Algo salió mal</h2>
+      <p>{{ errorMessage }}</p>
+      <app-button (click)="closeErrorModal()">Entendido</app-button>
+    </div>
+  </div>
+</div>

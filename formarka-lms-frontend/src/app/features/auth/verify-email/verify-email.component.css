@@ -1,0 +1,62 @@
+.auth-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: linear-gradient(135deg, var(--formarka-primary) 0%, #333 100%);
+}
+
+.auth-card {
+  background: var(--formarka-white);
+  padding: 40px;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  width: 100%;
+  max-width: 500px;
+  text-align: center;
+}
+
+.verify-icon {
+  font-size: 4rem;
+  margin-bottom: 20px;
+}
+
+.auth-header h1 {
+  font-size: 1.8rem;
+  margin-bottom: 16px;
+  color: var(--formarka-black);
+}
+
+.auth-header p {
+  color: var(--formarka-text-muted);
+  line-height: 1.6;
+}
+
+.verify-content {
+  margin: 32px 0;
+  text-align: left;
+}
+
+.verify-content p {
+  color: var(--formarka-text);
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.alert-info {
+  background-color: #f0f7ff;
+  border-left: 4px solid #007bff;
+  padding: 16px;
+  border-radius: 8px;
+}
+
+.alert-info p {
+  margin-bottom: 0;
+  font-size: 0.9rem;
+  color: #004085;
+}
+
+.verify-footer app-button {
+  width: 100%;
+}

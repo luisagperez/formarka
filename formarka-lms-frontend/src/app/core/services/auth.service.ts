@@ -1,129 +1,184 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { Injectable, signal, computed, inject } from '@angular/core';
+import { createClient, SupabaseClient, User as SupabaseUser } from '@supabase/supabase-js';
+import { environment } from '../../../environments/environment';
 import { User } from '../models/user.model';
-import { Observable, of, throwError } from 'rxjs';
-import { delay, tap } from 'rxjs/operators';
+import { Observable, from, of, throwError } from 'rxjs';
+import { catchError, map, tap } from 'rxjs/operators';
+import { HttpClient } from '@angular/common/http';
 
 /**
  * Authentication Service
  * 
- * Handles authentication and user management for the LMS.
+ * Handles authentication and user management using Supabase and Backend API.
  */
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  // Mock users as requested: 2 admins, 2 teachers, 2 students
-  private _users: User[] = [
-    { id: 'a1', email: 'admin1@formarka.com', name: 'Luisa administradora', role: 'admin' }, 
-    { id: 'a2', email: 'admin2@formarka.com', name: 'Camila administradora', role: 'admin' },
-    { id: 't1', email: 'profesor1@formarka.com', name: 'Luis Instructor', role: 'teacher', specialty: 'Diseño de Marca' },
-    { id: 't2', email: 'profesor2@formarka.com', name: 'Maria Experta', role: 'teacher', specialty: 'Marketing Digital' },
-    { id: 's1', email: 'alumno1@formarka.com', name: 'Juan Alumno', role: 'student', enrolledCourses: ['1'] },
-    { id: 's2', email: 'alumno2@formarka.com', name: 'Ana Estudiante', role: 'student', enrolledCourses: ['1', '2'] }
-  ];
-
+  private supabase: SupabaseClient;
+  private http = inject(HttpClient);
+  
+  // Local signal using our User model for UI compatibility
   private currentUserSignal = signal<User | null>(null);
   readonly currentUser = this.currentUserSignal.asReadonly();
   readonly isAuthenticated = computed(() => !!this.currentUserSignal());
 
+  // Mock users for admin methods (to be migrated to backend later)
+  private _users: User[] = [];
+
   constructor() {
-    this.checkSession();
+    this.supabase = createClient(environment.supabaseUrl, environment.supabaseKey);
+    
+    // Listen for auth state changes
+    this.supabase.auth.onAuthStateChange((event, session) => {
+      this.updateCurrentUser(session?.user ?? null);
+    });
+
+    this.checkInitialSession();
+  }
+
+  private updateCurrentUser(supabaseUser: SupabaseUser | null): void {
+    if (supabaseUser) {
+      const user: User = {
+        id: supabaseUser.id,
+        email: supabaseUser.email!,
+        name: supabaseUser.user_metadata?.['full_name'] || supabaseUser.email!.split('@')[0],
+        role: supabaseUser.user_metadata?.['role'] || 'student',
+        photoUrl: supabaseUser.user_metadata?.['avatar_url']
+      };
+      this.currentUserSignal.set(user);
+      localStorage.setItem('f-lms-user', JSON.stringify(user));
+    } else {
+      this.currentUserSignal.set(null);
+      localStorage.removeItem('f-lms-user');
+    }
+  }
+
+  private async checkInitialSession() {
+    const { data: { session } } = await this.supabase.auth.getSession();
+    this.updateCurrentUser(session?.user ?? null);
+  }
+
+  async getSession() {
+    const { data, error } = await this.supabase.auth.getSession();
+    if (error) throw error;
+    return data.session;
+  }
+
+  async signUp(email: string, password: string, name?: string) {
+    return this.supabase.auth.signUp({ 
+      email, 
+      password,
+      options: {
+        data: {
+          full_name: name,
+          role: 'student' // Default role
+        }
+      }
+    });
+  }
+
+  async signIn(email: string, password: string) {
+    return this.supabase.auth.signInWithPassword({ email, password });
+  }
+
+  async signOut() {
+    await this.supabase.auth.signOut();
+    window.location.href = '/auth/login';
+  }
+
+  logout() {
+    this.signOut();
   }
 
   /**
-   * Mock login method
+   * Compatibility method for existing login logic
    */
   login(email: string, password: string): Observable<User> {
-    console.log('Mock login initiated with:', email);
-    
-    const user = this._users.find(u => u.email === email);
-    
-    // Generic error message for both wrong email and wrong password
-    const genericError = new Error('Credenciales inválidas. Por favor verifica tu correo y contraseña.');
-
-    if (!user || password !== '012345') {
-      return throwError(() => genericError);
-    }
-
-    this.setCurrentUser(user);
-    return of(user).pipe(delay(800));
-  }
-
-  private setCurrentUser(user: User): void {
-    this.currentUserSignal.set(user);
-    localStorage.setItem('f-lms-token', 'mock-jwt-' + user.id);
-    localStorage.setItem('f-lms-user', JSON.stringify(user));
-  }
-
-  logout(): void {
-    this.currentUserSignal.set(null);
-    localStorage.removeItem('f-lms-token');
-    localStorage.removeItem('f-lms-user');
-    window.location.href = '/auth/login'; // Redirect to login
+    return from(this.signIn(email, password)).pipe(
+      map(({ data, error }) => {
+        if (error) throw error;
+        if (!data.user) throw new Error('No user found');
+        
+        // Map to our User model
+        return {
+          id: data.user.id,
+          email: data.user.email!,
+          name: data.user.user_metadata?.['full_name'] || data.user.email!.split('@')[0],
+          role: data.user.user_metadata?.['role'] || 'student'
+        } as User;
+      }),
+      catchError(err => throwError(() => new Error(err.message || 'Credenciales inválidas.')))
+    );
   }
 
   /**
-   * Mock register method
+   * Compatibility method for existing register logic
    */
   register(userData: any): Observable<User> {
-    console.log('Mock registration initiated with:', userData.email);
-    
-    // BACKEND REQUEST (Commented out):
-    // return this.http.post<User>('/api/auth/register', userData).pipe(
-    //   tap(user => this.setCurrentUser(user))
-    // );
-
-    const newUser: User = {
-      id: Math.random().toString(36).substring(2, 9),
-      email: userData.email,
-      name: userData.name,
-      role: 'student',
-      enrolledCourses: []
-    };
-    
-    this._users.push(newUser);
-    this.setCurrentUser(newUser);
-    return of(newUser).pipe(delay(1000));
+    return from(this.signUp(userData.email, userData.password, userData.name)).pipe(
+      map(({ data, error }) => {
+        if (error) throw error;
+        if (!data.user) throw new Error('No user found');
+        
+        return {
+          id: data.user.id,
+          email: data.user.email!,
+          name: data.user.user_metadata?.['full_name'] || data.user.email!.split('@')[0],
+          role: 'student'
+        } as User;
+      }),
+      catchError(err => throwError(() => new Error(err.message || 'Error al crear la cuenta.')))
+    );
   }
 
   /**
-   * ADMIN METHODS: User Management
+   * Completes the user profile in the backend
+   */
+  completeProfile(profileData: any): Observable<any> {
+    return this.http.post(`${environment.apiUrl}/users/profile/complete`, profileData).pipe(
+      tap(() => {
+        // Update local user data if needed
+        const current = this.currentUserSignal();
+        if (current) {
+          this.currentUserSignal.set({
+            ...current,
+            name: profileData.name,
+            role: profileData.role.toLowerCase(),
+            photoUrl: profileData.photoUrl
+          });
+        }
+      }),
+      catchError(err => {
+        console.error('Error completing profile:', err);
+        return throwError(() => new Error(err.error?.message || 'Error al completar el perfil.'));
+      })
+    );
+  }
+
+  /**
+   * ADMIN METHODS: User Management (Keep for UI compatibility, currently mock)
    */
   getUsers(): Observable<User[]> {
-    // BACKEND REQUEST (Commented out):
-    // return this.http.get<User[]>('/api/admin/users');
-    return of(this._users).pipe(delay(500));
+    return of(this._users);
   }
 
   addUser(user: User): Observable<User> {
-    // BACKEND REQUEST (Commented out):
-    // return this.http.post<User>('/api/admin/users', user);
     this._users.push(user);
-    return of(user).pipe(delay(500));
+    return of(user);
   }
 
   updateUser(id: string, userData: Partial<User>): Observable<User> {
-    // BACKEND REQUEST (Commented out):
-    // return this.http.put<User>(`/api/admin/users/${id}`, userData);
     const index = this._users.findIndex(u => u.id === id);
     if (index !== -1) {
       this._users[index] = { ...this._users[index], ...userData };
-      return of(this._users[index]).pipe(delay(500));
+      return of(this._users[index]);
     }
     throw new Error('User not found');
   }
 
   deleteUser(id: string): Observable<boolean> {
-    // BACKEND REQUEST (Commented out):
-    // return this.http.delete<boolean>(`/api/admin/users/${id}`);
     this._users = this._users.filter(u => u.id !== id);
-    return of(true).pipe(delay(500));
-  }
-
-  private checkSession(): void {
-    const savedUser = localStorage.getItem('f-lms-user');
-    if (savedUser) {
-      this.currentUserSignal.set(JSON.parse(savedUser));
-    }
+    return of(true);
   }
 }

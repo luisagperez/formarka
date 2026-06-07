@@ -58,7 +58,7 @@ export class RegisterComponent {
         next: (user) => {
           this.isLoading = false;
           console.log('Registro exitoso:', user);
-          this.router.navigate(['/auth/login']);
+          this.router.navigate(['/auth/verify-email']);
         },
         error: (err) => {
           this.isLoading = false;

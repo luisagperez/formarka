@@ -7,7 +7,7 @@ import { User } from '../../../core/models/comment.model';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="composer-container glass" [class.focused]="isFocused">
+    <div *ngIf="currentUser" class="composer-container glass" [class.focused]="isFocused">
       <div class="composer-header">
         <img [src]="currentUser.avatar" class="avatar">
         <div class="composer-info">
@@ -168,7 +168,7 @@ import { User } from '../../../core/models/comment.model';
   `]
 })
 export class CommentComposerComponent {
-  @Input() currentUser!: User;
+  @Input() currentUser!: User | null;
   @Output() submitComment = new EventEmitter<string>();
 
   isFocused = false;

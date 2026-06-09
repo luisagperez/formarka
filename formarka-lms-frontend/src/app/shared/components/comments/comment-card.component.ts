@@ -36,7 +36,7 @@ import { CommentService } from '../../../core/services/comment.service';
       </div>
 
       <!-- Reply Composer -->
-      <div class="reply-composer animate-fade" *ngIf="isReplying">
+      <div class="reply-composer animate-fade" *ngIf="isReplying && currentUser">
         <div class="composer-inner">
           <img [src]="currentUser.avatar" class="avatar-small">
           <textarea 
@@ -252,7 +252,7 @@ import { CommentService } from '../../../core/services/comment.service';
 })
 export class CommentCardComponent {
   @Input() comment!: Comment;
-  @Input() currentUser!: User;
+  @Input() currentUser!: User | null;
   @Output() like = new EventEmitter<string>();
   @Output() reply = new EventEmitter<{ parentId: string, content: string }>();
 

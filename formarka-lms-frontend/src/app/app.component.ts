@@ -27,8 +27,7 @@ export class AppComponent implements OnInit {
             currentUrl === '/') {
           
           // Check if we should go to complete profile or dashboard
-          // For now, let's assume if they just verified, they should complete profile
-          this.router.navigate(['/auth/complete-profile']);
+          this.authService.checkProfileAndRedirect();
         }
       }
     });

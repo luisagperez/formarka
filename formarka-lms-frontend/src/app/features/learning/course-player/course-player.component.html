@@ -98,6 +98,11 @@
           <app-quiz [quiz]="currentLesson!.quiz!" (onComplete)="markAsCompleted()"></app-quiz>
         </section>
 
+        <!-- Deliverable Section -->
+        <section class="deliverable-section" *ngIf="currentLesson?.type === 'deliverable'">
+          <app-deliverable [lessonId]="currentLesson!.id" (onComplete)="markAsCompleted()"></app-deliverable>
+        </section>
+
         <!-- Lesson Metadata & Comments -->
         <section class="lesson-metadata">
           <div class="info-card-premium glass">

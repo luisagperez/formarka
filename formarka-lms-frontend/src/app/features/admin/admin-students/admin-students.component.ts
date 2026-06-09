@@ -74,15 +74,16 @@ import { FormsModule } from '@angular/forms';
           </div>
           
           <div class="deliverables-list">
-            <div *ngIf="mockDeliverables.length === 0" class="empty-state">
+            <div *ngIf="isLoadingDeliverables" class="empty-state">Cargando entregables...</div>
+            <div *ngIf="!isLoadingDeliverables && deliverables.length === 0" class="empty-state">
               No hay entregables pendientes.
             </div>
-            <div *ngFor="let del of mockDeliverables" class="deliverable-item card animate-up">
+            <div *ngFor="let del of deliverables" class="deliverable-item card animate-up">
               <div class="del-header">
-                <h4>Definición de Buyer Persona</h4>
-                <span class="del-date">{{ del.submissionDate }}</span>
+                <h4>Entregable #{{ del.lessonId }}</h4>
+                <span class="del-date">{{ del.submissionDate | date:'short' }}</span>
               </div>
-              <p>El estudiante ha enviado su propuesta de marca y segmentación.</p>
+              <p>Estado actual: <strong>{{ del.status | uppercase }}</strong></p>
               <a [href]="del.contentUrl" target="_blank" class="view-link">📄 Ver Archivo Enviado</a>
               
               <div class="grading-section">
@@ -148,30 +149,41 @@ export class AdminStudentsComponent implements OnInit {
   
   gradeValue: number = 0;
   feedbackText: string = '';
-
-  mockDeliverables = [
-    { id: 'd1', submissionDate: '2026-05-15', contentUrl: '#', status: 'pending' }
-  ];
+  deliverables: any[] = [];
+  isLoadingDeliverables = false;
 
   constructor(private route: ActivatedRoute, private courseService: CourseService) {}
 
   ngOnInit() {
     this.courseId = this.route.snapshot.paramMap.get('id') || '';
     this.courseService.getCourse(this.courseId).subscribe(c => this.course = c);
+    this.loadStudents();
+  }
+
+  loadStudents() {
     this.courseService.getEnrolledStudents(this.courseId).subscribe(s => this.students = s);
   }
 
   viewDeliverables(student: StudentProgress) {
     this.selectedStudent = student;
+    this.isLoadingDeliverables = true;
+    this.courseService.getStudentDeliverables(this.courseId, student.studentId).subscribe(d => {
+      this.deliverables = d;
+      this.isLoadingDeliverables = false;
+    });
   }
 
-  submitGrade(delId: string) {
+  submitGrade(delId: string | number) {
     if (!this.selectedStudent) return;
     
-    this.courseService.gradeDeliverable(this.courseId, this.selectedStudent.studentId, this.gradeValue, this.feedbackText).subscribe(() => {
-      alert(`Calificación de ${this.gradeValue} guardada con éxito para ${this.selectedStudent?.studentName}`);
-      this.courseService.getEnrolledStudents(this.courseId).subscribe(s => this.students = s);
-      this.selectedStudent = null;
+    this.courseService.gradeDeliverable(delId, this.gradeValue, this.feedbackText).subscribe(success => {
+      if (success) {
+        alert(`Calificación de ${this.gradeValue} guardada con éxito.`);
+        this.loadStudents();
+        this.selectedStudent = null;
+      } else {
+        alert('Error al guardar la calificación.');
+      }
     });
   }
 }

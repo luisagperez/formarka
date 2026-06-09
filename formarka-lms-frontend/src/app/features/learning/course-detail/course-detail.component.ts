@@ -281,7 +281,7 @@ export class CourseDetailComponent implements OnInit {
       this.courseService.getCourse(id).subscribe(course => {
         this.course = course;
         if (course) {
-          this.isEnrolled = this.courseService.isEnrolled(course.id);
+          this.isEnrolled = course.isEnrolled || this.courseService.isEnrolled(course.id);
           this.progress = this.courseService.getCourseProgress(course.id);
           // By default, only first module open
           if (this.course?.modules && this.course.modules.length > 0) {

@@ -1,7 +1,8 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Quiz, QuizQuestion } from '../../../core/models/course.model';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
+import { CourseService } from '../../../core/services/course.service';
 
 @Component({
   selector: 'app-quiz',
@@ -39,7 +40,8 @@ import { ButtonComponent } from '../../../shared/components/button/button.compon
 
         <div class="actions">
           <app-button 
-            [disabled]="!selectedOptionId" 
+            [disabled]="selectedOptionId === null || isSubmitting" 
+            [loading]="isSubmitting"
             (onClick)="nextQuestion()">
             {{ isLastQuestion ? 'Finalizar' : 'Siguiente' }}
           </app-button>
@@ -155,15 +157,18 @@ import { ButtonComponent } from '../../../shared/components/button/button.compon
   `]
 })
 export class QuizComponent {
+  private courseService = inject(CourseService);
+  
   @Input({ required: true }) quiz!: Quiz;
   @Output() onComplete = new EventEmitter<number>();
 
   step: 'intro' | 'question' | 'result' = 'intro';
   currentQuestionIndex = 0;
-  selectedOptionId: string | null = null;
-  answers: { [key: string]: string } = {};
+  selectedOptionId: string | number | null = null;
+  answers: { [key: number]: number } = {};
   score = 0;
   isPassed = false;
+  isSubmitting = false;
 
   get currentQuestion(): QuizQuestion {
     return this.quiz.questions[this.currentQuestionIndex];
@@ -184,15 +189,15 @@ export class QuizComponent {
     this.answers = {};
   }
 
-  selectOption(optionId: string) {
+  selectOption(optionId: string | number) {
     this.selectedOptionId = optionId;
   }
 
   nextQuestion() {
-    if (!this.selectedOptionId) return;
+    if (this.selectedOptionId === null) return;
 
     // Save answer
-    this.answers[this.currentQuestion.id] = this.selectedOptionId;
+    this.answers[this.currentQuestion.id as number] = this.selectedOptionId as number;
 
     if (this.isLastQuestion) {
       this.calculateResult();
@@ -203,16 +208,29 @@ export class QuizComponent {
   }
 
   calculateResult() {
-    let correctCount = 0;
-    this.quiz.questions.forEach(q => {
-      if (this.answers[q.id] === q.correctOptionId) {
-        correctCount++;
+    this.isSubmitting = true;
+    this.courseService.submitQuiz(this.quiz.id, this.answers).subscribe({
+      next: (res) => {
+        this.score = res.score;
+        this.isPassed = res.passed;
+        this.step = 'result';
+        this.isSubmitting = false;
+      },
+      error: (err) => {
+        console.error('Error submitting quiz:', err);
+        // Fallback calculation in case API fails
+        let correctCount = 0;
+        this.quiz.questions.forEach(q => {
+          if (q.correctOptionId && this.answers[q.id as number] === q.correctOptionId) {
+            correctCount++;
+          }
+        });
+        this.score = Math.round((correctCount / this.quiz.questions.length) * 100);
+        this.isPassed = this.score >= this.quiz.passingScore;
+        this.step = 'result';
+        this.isSubmitting = false;
       }
     });
-
-    this.score = Math.round((correctCount / this.quiz.questions.length) * 100);
-    this.isPassed = this.score >= this.quiz.passingScore;
-    this.step = 'result';
   }
 
   restart() {

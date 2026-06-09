@@ -6,12 +6,13 @@ import { Course, Lesson, Module } from '../../../core/models/course.model';
 import { CourseService } from '../../../core/services/course.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { QuizComponent } from '../quiz/quiz.component';
+import { DeliverableComponent } from '../deliverable/deliverable.component';
 import { CommentsSectionComponent } from '../../../shared/components/comments/comments-section.component';
 
 @Component({
   selector: 'app-course-player',
   standalone: true,
-  imports: [CommonModule, RouterModule, SafePipe, QuizComponent, CommentsSectionComponent],
+  imports: [CommonModule, RouterModule, SafePipe, QuizComponent, DeliverableComponent, CommentsSectionComponent],
   templateUrl: './course-player.component.html',
 
   styleUrl: './course-player.component.css'

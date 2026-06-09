@@ -201,12 +201,12 @@ import { CommentComposerComponent } from './comment-composer.component';
   `]
 })
 export class CommentsSectionComponent implements OnInit, OnChanges {
-  @Input() lessonId!: string;
+  @Input() lessonId!: string | number;
   
   private commentService = inject(CommentService);
   
   comments = signal<Comment[]>([]);
-  currentUser: User = this.commentService.getCurrentUser();
+  currentUser: User | null = this.commentService.getCurrentUser();
   isLoading = signal(true);
   currentSort: CommentSortOrder = 'relevant';
 

@@ -1,4 +1,5 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
+import { Router } from '@angular/router';
 import { createClient, SupabaseClient, User as SupabaseUser } from '@supabase/supabase-js';
 import { environment } from '../../../environments/environment';
 import { User } from '../models/user.model';
@@ -17,6 +18,7 @@ import { HttpClient } from '@angular/common/http';
 export class AuthService {
   private supabase: SupabaseClient;
   private http = inject(HttpClient);
+  private router = inject(Router);
   
   // Local signal using our User model for UI compatibility
   private currentUserSignal = signal<User | null>(null);
@@ -28,8 +30,6 @@ export class AuthService {
 
   constructor() {
     this.supabase = createClient(environment.supabaseUrl, environment.supabaseKey);
-    this.http = inject(HttpClient);
-    this.router = inject(Router);
     
     // Listen for auth state changes (crucial for email verification redirects)
     this.supabase.auth.onAuthStateChange(async (event, session) => {
@@ -45,28 +45,37 @@ export class AuthService {
     this.checkInitialSession();
   }
 
-  private router = inject(Router);
-
-  private async checkProfileAndRedirect(userId: string) {
+  async checkProfileAndRedirect(userId?: string) {
     const currentUrl = this.router.url;
     
-    // Solo actuamos si el usuario está en una pantalla de autenticación
-    if (currentUrl.includes('/auth/')) {
+    // Actuamos si el usuario está en una pantalla de autenticación, en el home o en el catálogo inicial
+    // para asegurar que el perfil esté completo.
+    if (currentUrl.includes('/auth/') || currentUrl === '/' || currentUrl === '/courses' || currentUrl === '') {
       try {
         // Consultamos al backend si el perfil ya existe en PostgreSQL
-        const status = await this.http.get<{isProfileComplete: boolean}>(`${environment.apiUrl}/users/profile/status`).toPromise();
+        const status = await this.http.get<any>(`${environment.apiUrl}/users/profile/status`).toPromise();
         
-        if (status?.isProfileComplete) {
-          // Si el perfil ya está completo, vamos al dashboard/cursos
-          this.router.navigate(['/courses']);
+        // Manejamos posibles variaciones de casing (isProfileComplete vs IsProfileComplete)
+        const isComplete = status?.isProfileComplete || status?.IsProfileComplete;
+
+        if (isComplete) {
+          // Si el perfil ya está completo y estamos en una pantalla de auth (que no sea el perfil mismo)
+          // o en el home, lo mandamos al catálogo.
+          if ((currentUrl.includes('/auth/') && !currentUrl.includes('complete-profile')) || currentUrl === '/' || currentUrl === '') {
+            this.router.navigate(['/courses']);
+          }
         } else {
-          // Si no existe en nuestra DB, debe completar perfil
-          this.router.navigate(['/auth/complete-profile']);
+          // Si no existe en nuestra DB y no estamos ya en la página de completar, debe completar perfil
+          if (!currentUrl.includes('/auth/complete-profile')) {
+            this.router.navigate(['/auth/complete-profile']);
+          }
         }
       } catch (error) {
         console.error('Error al verificar estado del perfil:', error);
-        // Por seguridad, si falla la verificación, lo mandamos a completar
-        this.router.navigate(['/auth/complete-profile']);
+        // Por seguridad, si falla la verificación y estamos en auth, lo mandamos a completar
+        if (currentUrl.includes('/auth/') && !currentUrl.includes('/auth/complete-profile')) {
+          this.router.navigate(['/auth/complete-profile']);
+        }
       }
     }
   }
@@ -191,28 +200,42 @@ export class AuthService {
   }
 
   /**
-   * ADMIN METHODS: User Management (Keep for UI compatibility, currently mock)
+   * ADMIN METHODS: User Management using Backend API
    */
   getUsers(): Observable<User[]> {
-    return of(this._users);
+    return this.http.get<any[]>(`${environment.apiUrl}/users`).pipe(
+      map(users => users.map(u => ({
+        id: u.id,
+        name: u.fullName,
+        email: u.email,
+        role: u.role.toLowerCase(),
+        specialty: u.specialty,
+        enrolledCourses: new Array(u.enrolledCoursesCount) // Mocking array for UI
+      } as User)))
+    );
   }
 
   addUser(user: User): Observable<User> {
-    this._users.push(user);
+    // Note: Creating users manually in Supabase is complex via API without admin key.
+    // For now, we'll just log and return. Real users should sign up.
+    console.warn('Manual user creation via Admin not fully implemented for Supabase side.');
     return of(user);
   }
 
-  updateUser(id: string, userData: Partial<User>): Observable<User> {
-    const index = this._users.findIndex(u => u.id === id);
-    if (index !== -1) {
-      this._users[index] = { ...this._users[index], ...userData };
-      return of(this._users[index]);
+  updateUser(id: string, userData: Partial<User>): Observable<any> {
+    // Backend supports updating role
+    if (userData.role) {
+      return this.http.put(`${environment.apiUrl}/users/${id}/role`, JSON.stringify(userData.role), {
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
-    throw new Error('User not found');
+    return of(true);
   }
 
   deleteUser(id: string): Observable<boolean> {
-    this._users = this._users.filter(u => u.id !== id);
-    return of(true);
+    return this.http.delete(`${environment.apiUrl}/users/${id}`).pipe(
+      map(() => true),
+      catchError(() => of(false))
+    );
   }
 }

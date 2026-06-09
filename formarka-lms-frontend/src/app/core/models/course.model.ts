@@ -1,34 +1,34 @@
 export interface QuizOption {
-  id: string;
+  id: string | number;
   text: string;
 }
 
 export interface QuizQuestion {
-  id: string;
+  id: string | number;
   text: string;
   options: QuizOption[];
-  correctOptionId: string;
+  correctOptionId?: string | number;
 }
 
 export interface Quiz {
-  id: string;
+  id: string | number;
   title: string;
   questions: QuizQuestion[];
   passingScore: number;
 }
 
 export interface Resource {
-  id: string;
+  id: string | number;
   title: string;
   url: string;
   type: 'pdf' | 'zip' | 'link' | 'excel';
 }
 
 export interface Deliverable {
-  id: string;
+  id: string | number;
   studentId: string;
-  courseId: string;
-  lessonId: string;
+  courseId: string | number;
+  lessonId: string | number;
   contentUrl: string;
   submissionDate: string;
   grade?: number;
@@ -37,7 +37,7 @@ export interface Deliverable {
 }
 
 export interface Lesson {
-  id: string;
+  id: string | number;
   title: string;
   type: 'video' | 'text' | 'quiz' | 'file' | 'deliverable';
   contentUrl?: string; // YouTube URL for videos
@@ -49,7 +49,7 @@ export interface Lesson {
 }
 
 export interface Module {
-  id: string;
+  id: string | number;
   title: string;
   lessons: Lesson[];
   isOpen?: boolean;
@@ -75,4 +75,5 @@ export interface Course {
   totalHours: number;
   modules?: Module[];
   enrolledStudents?: StudentProgress[];
+  isEnrolled?: boolean;
 }

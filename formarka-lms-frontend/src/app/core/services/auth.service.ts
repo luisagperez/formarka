@@ -86,7 +86,7 @@ export class AuthService {
         id: supabaseUser.id,
         email: supabaseUser.email!,
         name: supabaseUser.user_metadata?.['full_name'] || supabaseUser.email!.split('@')[0],
-        role: supabaseUser.user_metadata?.['role'] || 'student',
+        role: (supabaseUser.user_metadata?.['role'] || 'student').toLowerCase(),
         photoUrl: supabaseUser.user_metadata?.['avatar_url']
       };
       this.currentUserSignal.set(user);
@@ -215,6 +215,10 @@ export class AuthService {
     );
   }
 
+  getInstructors(): Observable<any[]> {
+    return this.http.get<any[]>(`${environment.apiUrl}/users/instructors`);
+  }
+
   addUser(user: User): Observable<User> {
     // Note: Creating users manually in Supabase is complex via API without admin key.
     // For now, we'll just log and return. Real users should sign up.
@@ -223,13 +227,14 @@ export class AuthService {
   }
 
   updateUser(id: string, userData: Partial<User>): Observable<any> {
-    // Backend supports updating role
-    if (userData.role) {
-      return this.http.put(`${environment.apiUrl}/users/${id}/role`, JSON.stringify(userData.role), {
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
-    return of(true);
+    // Send full object to the general update endpoint
+    const payload = {
+      id: id,
+      name: userData.name,
+      role: userData.role,
+      specialty: userData.specialty
+    };
+    return this.http.put(`${environment.apiUrl}/users/${id}`, payload);
   }
 
   deleteUser(id: string): Observable<boolean> {

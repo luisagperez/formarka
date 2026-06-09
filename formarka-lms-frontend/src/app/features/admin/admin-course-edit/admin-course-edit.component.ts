@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormArray, FormControl } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CourseService } from '../../../core/services/course.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { Course, Resource } from '../../../core/models/course.model';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { FormFieldComponent } from '../../../shared/components/form-field/form-field.component';
@@ -64,11 +65,15 @@ import { FormFieldComponent } from '../../../shared/components/form-field/form-f
                   </select>
                 </div>
               </div>
-              <app-form-field 
-                label="Nombre del Instructor" 
-                [control]="getControl('instructorName')"
-                placeholder="Ej. Esteban Formarka">
-              </app-form-field>
+              <div class="form-field">
+                <label class="label">Instructor Responsable</label>
+                <div class="select-wrapper">
+                  <select formControlName="instructorId" class="select-input">
+                    <option value="" disabled>Seleccione un instructor</option>
+                    <option *ngFor="let inst of instructors" [value]="inst.id">{{ inst.name }} ({{ inst.specialty }})</option>
+                  </select>
+                </div>
+              </div>
             </div>
 
             <div class="form-field">
@@ -146,10 +151,35 @@ import { FormFieldComponent } from '../../../shared/components/form-field/form-f
                           </div>
                         </div>
 
-                        <!-- Quiz: URL + Duration -->
-                        <div *ngSwitchCase="'quiz'" class="form-row">
-                          <app-form-field label="Enlace al Cuestionario" [control]="getLessonControl(i, j, 'contentUrl')" placeholder="URL del quiz o evaluación"></app-form-field>
-                          <app-form-field label="Tiempo Sugerido (min)" [control]="getLessonControl(i, j, 'duration')" placeholder="Ej. 15:00"></app-form-field>
+                        <!-- Quiz Section -->
+                        <div *ngSwitchCase="'quiz'" class="quiz-edit-box card shadow-sm">
+                          <div [formGroupName]="'quiz'">
+                            <div class="quiz-info-row">
+                              <app-form-field label="Título del Quiz" [control]="getQuizControl(i, j, 'title')" placeholder="Ej. Evaluación de Marca"></app-form-field>
+                              <app-form-field label="Puntaje para Aprobar" type="number" [control]="getQuizControl(i, j, 'passingScore')" placeholder="70"></app-form-field>
+                            </div>
+
+                            <div formArrayName="questions" class="questions-list">
+                              <div *ngFor="let question of getQuestions(i, j).controls; let qi=index" [formGroupName]="qi" class="question-item">
+                                <div class="question-header">
+                                  <span class="q-num">Q{{ qi + 1 }}</span>
+                                  <input type="text" formControlName="text" placeholder="Escribe la pregunta..." class="q-input">
+                                  <input type="number" formControlName="points" placeholder="Pts" class="q-points">
+                                  <button type="button" class="res-remove" (click)="removeQuestion(i, j, qi)">×</button>
+                                </div>
+
+                                <div formArrayName="options" class="options-list">
+                                  <div *ngFor="let option of getOptions(i, j, qi).controls; let oi=index" [formGroupName]="oi" class="option-row">
+                                    <input type="checkbox" formControlName="isCorrect" class="opt-check">
+                                    <input type="text" formControlName="text" placeholder="Opción {{ oi + 1 }}" class="opt-input">
+                                    <button type="button" class="res-remove" (click)="removeOption(i, j, qi, oi)">×</button>
+                                  </div>
+                                  <button type="button" class="small-add-btn" (click)="addOption(i, j, qi)">+ Añadir Opción</button>
+                                </div>
+                              </div>
+                            </div>
+                            <button type="button" class="add-question-btn" (click)="addQuestion(i, j)">+ Nueva Pregunta</button>
+                          </div>
                         </div>
 
                         <!-- Deliverable: Instructions -->
@@ -256,6 +286,21 @@ import { FormFieldComponent } from '../../../shared/components/form-field/form-f
     .delete-icon-btn { background: none; border: none; font-size: 1.2rem; cursor: pointer; }
     .type-info { display: flex; align-items: center; color: #666; font-size: 0.85rem; padding: 12px; background: #f8fafc; border-radius: 12px; border: 1px dashed #cbd5e1; }
     .type-info p { margin: 0; line-height: 1.4; }
+
+    /* Quiz Edit Styles */
+    .quiz-edit-box { background: #fff; border: 2px solid var(--brand-purple-light); border-radius: 20px; padding: 24px; margin-top: 15px; }
+    .quiz-info-row { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 24px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
+    .question-item { background: #f9fafb; border-radius: 16px; padding: 20px; margin-bottom: 20px; border: 1px solid #e5e7eb; }
+    .question-header { display: flex; gap: 12px; align-items: center; margin-bottom: 16px; }
+    .q-num { font-weight: 800; color: var(--brand-purple-deep); background: #eee; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 8px; }
+    .q-input { flex: 1; border: none; background: transparent; font-weight: 700; font-size: 1.1rem; border-bottom: 2px solid #ddd; padding: 5px; }
+    .q-points { width: 60px; text-align: center; border: 1.5px solid #ddd; border-radius: 8px; padding: 4px; }
+    
+    .options-list { margin-left: 44px; display: flex; flex-direction: column; gap: 10px; }
+    .option-row { display: flex; align-items: center; gap: 12px; }
+    .opt-input { flex: 1; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 12px; font-size: 0.9rem; }
+    .opt-check { width: 18px; height: 18px; cursor: pointer; accent-color: var(--brand-purple-deep); }
+    .add-question-btn { background: var(--brand-purple-deep); color: white; border: none; padding: 10px 20px; border-radius: 30px; font-weight: 700; cursor: pointer; width: 100%; margin-top: 10px; }
   `]
 })
 export class AdminCourseEditComponent implements OnInit {
@@ -263,12 +308,14 @@ export class AdminCourseEditComponent implements OnInit {
   isEditMode = false;
   isSaving = false;
   courseId?: string;
+  instructors: any[] = [];
 
   constructor(
     private fb: FormBuilder,
     private route: ActivatedRoute,
     private router: Router,
-    private courseService: CourseService
+    private courseService: CourseService,
+    private authService: AuthService
   ) {
     this.courseForm = this.fb.group({
       title: ['', [Validators.required, Validators.minLength(5)]],
@@ -276,7 +323,7 @@ export class AdminCourseEditComponent implements OnInit {
       category: ['', [Validators.required]],
       level: ['básico', [Validators.required]],
       thumbnailUrl: ['', [Validators.required]],
-      instructorName: ['', [Validators.required]],
+      instructorId: ['', [Validators.required]],
       totalHours: [20, [Validators.required, Validators.min(1)]],
       modules: this.fb.array([])
     });
@@ -286,13 +333,25 @@ export class AdminCourseEditComponent implements OnInit {
 
   getLessons(moduleIndex: number) { return this.modules.at(moduleIndex).get('lessons') as FormArray; }
 
-  getResources(moduleIndex: number, lessonIndex: number) { 
-    return this.getLessons(moduleIndex).at(lessonIndex).get('resources') as FormArray; 
+  getResources(mi: number, li: number) {
+    return this.getLessons(mi).at(li).get('resources') as FormArray;
+  }
+
+  getQuizGroup(moduleIndex: number, lessonIndex: number) {
+    return this.getLessons(moduleIndex).at(lessonIndex).get('quiz') as FormGroup;
+  }
+
+  getQuestions(mi: number, li: number) {
+    return this.getQuizGroup(mi, li).get('questions') as FormArray;
+  }
+
+  getOptions(mi: number, li: number, qi: number) {
+    return this.getQuestions(mi, li).at(qi).get('options') as FormArray;
   }
 
   addModule() {
     const moduleGroup = this.fb.group({
-      id: [Math.random().toString(36).substring(2, 9)],
+      id: [null],
       title: ['', Validators.required],
       lessons: this.fb.array([])
     });
@@ -304,20 +363,68 @@ export class AdminCourseEditComponent implements OnInit {
 
   addLesson(moduleIndex: number) {
     const lessonGroup = this.fb.group({
-      id: [Math.random().toString(36).substring(2, 9)],
+      id: [null],
       title: ['', Validators.required],
       type: ['video', Validators.required],
       contentUrl: [''],
       duration: [''],
-      resources: this.fb.array([])
+      resources: this.fb.array([]),
+      quiz: this.fb.group({
+        id: [null],
+        title: [''],
+        description: [''],
+        passingScore: [70],
+        questions: this.fb.array([])
+      })
     });
     this.getLessons(moduleIndex).push(lessonGroup);
+
+    lessonGroup.get('type')?.valueChanges.subscribe(type => {
+      if (type === 'quiz' && !lessonGroup.get('quiz.title')?.value) {
+        lessonGroup.get('quiz.title')?.setValue(`Evaluación: ${lessonGroup.get('title')?.value}`);
+        if (this.getQuestions(moduleIndex, this.getLessons(moduleIndex).length - 1).length === 0) {
+          this.addQuestion(moduleIndex, this.getLessons(moduleIndex).length - 1);
+        }
+      }
+    });
+  }
+
+  addQuestion(mi: number, li: number) {
+    const qGroup = this.fb.group({
+      id: [null],
+      text: ['', Validators.required],
+      type: ['multiplechoice'],
+      points: [10],
+      options: this.fb.array([])
+    });
+    this.getQuestions(mi, li).push(qGroup);
+    const qi = this.getQuestions(mi, li).length - 1;
+    this.addOption(mi, li, qi);
+    this.addOption(mi, li, qi);
+  }
+
+  removeQuestion(mi: number, li: number, qi: number) {
+    this.getQuestions(mi, li).removeAt(qi);
+  }
+
+  addOption(mi: number, li: number, qi: number) {
+    const oGroup = this.fb.group({
+      id: [null],
+      text: ['', Validators.required],
+      isCorrect: [false]
+    });
+    this.getOptions(mi, li, qi).push(oGroup);
+  }
+
+  removeOption(mi: number, li: number, qi: number, oi: number) {
+    this.getOptions(mi, li, qi).removeAt(oi);
   }
 
   removeLesson(moduleIndex: number, lessonIndex: number) { this.getLessons(moduleIndex).removeAt(lessonIndex); }
 
   addResource(moduleIndex: number, lessonIndex: number) {
     const resGroup = this.fb.group({
+      id: [null],
       title: ['', Validators.required],
       url: ['', Validators.required],
       type: ['pdf']
@@ -330,6 +437,9 @@ export class AdminCourseEditComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    // Load instructors first
+    this.authService.getInstructors().subscribe((list: any[]) => this.instructors = list);
+
     const id = this.route.snapshot.paramMap.get('id');
     if (id && id !== 'new') {
       this.isEditMode = true;
@@ -342,28 +452,68 @@ export class AdminCourseEditComponent implements OnInit {
             category: course.category,
             level: course.level,
             thumbnailUrl: course.thumbnailUrl,
-            instructorName: course.instructorName,
+            instructorId: course.instructorId,
             totalHours: course.totalHours
           });
           
           if (course.modules) {
             this.modules.clear();
-            course.modules.forEach(m => {
+            course.modules.forEach((m, mi) => {
               const moduleGroup = this.fb.group({
                 id: [m.id],
                 title: [m.title, Validators.required],
-                lessons: this.fb.array(m.lessons.map(l => this.fb.group({
-                  id: [l.id],
-                  title: [l.title, Validators.required],
-                  type: [l.type, Validators.required],
-                  contentUrl: [l.contentUrl || ''],
-                  duration: [l.duration || ''],
-                  resources: this.fb.array((l.resources || []).map(r => this.fb.group({
-                    title: [r.title],
-                    url: [r.url],
-                    type: [r.type]
-                  })))
-                })))
+                lessons: this.fb.array(m.lessons.map((l, li) => {
+                  const lGroup = this.fb.group({
+                    id: [l.id],
+                    title: [l.title, Validators.required],
+                    type: [l.type, Validators.required],
+                    contentUrl: [l.contentUrl || ''],
+                    duration: [l.duration || ''],
+                    resources: this.fb.array((l.resources || []).map(r => this.fb.group({
+                      id: [r.id],
+                      title: [r.title],
+                      url: [r.url],
+                      type: [r.type]
+                    }))),
+                    quiz: this.fb.group({
+                      id: [null],
+                      title: [''],
+                      description: [''],
+                      passingScore: [70],
+                      questions: this.fb.array([])
+                    })
+                  });
+
+                  if (l.type === 'quiz') {
+                    this.courseService.getQuizByLesson(l.id).subscribe(quiz => {
+                      if (quiz) {
+                        const qGroup = lGroup.get('quiz') as FormGroup;
+                        qGroup.patchValue({
+                          id: quiz.id,
+                          title: quiz.title,
+                          description: quiz.description,
+                          passingScore: quiz.passingScore
+                        });
+                        const questionsArray = qGroup.get('questions') as FormArray;
+                        questionsArray.clear();
+                        quiz.questions.forEach((q: any) => {
+                          questionsArray.push(this.fb.group({
+                            id: [q.id],
+                            text: [q.text, Validators.required],
+                            type: [q.questionType || 'multiplechoice'],
+                            points: [q.points || 10],
+                            options: this.fb.array(q.options.map((o: any) => this.fb.group({
+                              id: [o.id],
+                              text: [o.text, Validators.required],
+                              isCorrect: [o.isCorrect]
+                            })))
+                          }));
+                        });
+                      }
+                    });
+                  }
+                  return lGroup;
+                }))
               });
               this.modules.push(moduleGroup);
             });
@@ -381,21 +531,42 @@ export class AdminCourseEditComponent implements OnInit {
     return this.getLessons(mi).at(li).get(name) as FormControl;
   }
 
+  getQuizControl(mi: number, li: number, name: string): FormControl {
+    return this.getQuizGroup(mi, li).get(name) as FormControl;
+  }
+
   saveCourse(): void {
     if (this.courseForm.invalid) return;
     this.isSaving = true;
-    const courseData = this.courseForm.value;
     
-    // BACKEND REQUEST:
-    // this.http.post('/api/courses', courseData)...
+    // Process form value to ensure correct types and include order
+    const formValue = this.courseForm.getRawValue();
+    const courseData = {
+      ...formValue,
+      modules: formValue.modules.map((m: any, mi: number) => ({
+        ...m,
+        order: mi + 1,
+        lessons: m.lessons.map((l: any, li: number) => ({
+          ...l,
+          order: li + 1,
+          quiz: l.type === 'quiz' ? l.quiz : null
+        }))
+      }))
+    };
 
     const obs = this.isEditMode && this.courseId 
       ? this.courseService.updateCourse(this.courseId, courseData)
       : this.courseService.createCourse(courseData);
 
-    obs.subscribe(() => {
-      this.isSaving = false;
-      this.router.navigate(['/admin/courses']);
+    obs.subscribe({
+      next: () => {
+        this.isSaving = false;
+        this.router.navigate(['/admin/courses']);
+      },
+      error: () => {
+        this.isSaving = false;
+        alert('Error al guardar el curso.');
+      }
     });
   }
 }

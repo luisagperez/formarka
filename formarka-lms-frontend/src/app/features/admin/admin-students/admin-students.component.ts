@@ -17,7 +17,10 @@ import { FormsModule } from '@angular/forms';
           <h1 class="text-gradient">Estudiantes del Curso</h1>
           <p>Seguimiento de progreso, calificaciones y entregables de {{ course?.title }}.</p>
         </div>
-        <app-button variant="outline" routerLink="/admin/courses">Volver</app-button>
+        <div class="header-actions">
+          <app-button variant="outline" (onClick)="enrollStudent()">Inscribir Alumno</app-button>
+          <app-button variant="outline" routerLink="/admin/courses">Volver</app-button>
+        </div>
       </div>
 
       <div class="table-card glass">
@@ -162,6 +165,20 @@ export class AdminStudentsComponent implements OnInit {
 
   loadStudents() {
     this.courseService.getEnrolledStudents(this.courseId).subscribe(s => this.students = s);
+  }
+
+  enrollStudent() {
+    const studentId = prompt('Ingrese el ID del estudiante a inscribir:');
+    if (studentId) {
+      this.courseService.enrollStudent(this.courseId, studentId).subscribe(success => {
+        if (success) {
+          alert('Estudiante inscrito exitosamente.');
+          this.loadStudents();
+        } else {
+          alert('Error al inscribir al estudiante. Verifique el ID.');
+        }
+      });
+    }
   }
 
   viewDeliverables(student: StudentProgress) {

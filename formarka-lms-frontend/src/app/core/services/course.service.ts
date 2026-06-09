@@ -94,6 +94,10 @@ export class CourseService {
     );
   }
 
+  getAdminCourses(): Observable<Course[]> {
+    return this.http.get<Course[]>(`${this.apiUrl}/admin`);
+  }
+
   isEnrolled(courseId: string | number): boolean {
     const enrollments = this.getEnrollments();
     return enrollments.includes(courseId.toString());
@@ -127,8 +131,27 @@ export class CourseService {
     );
   }
 
+  enrollStudent(courseId: string | number, studentId: string): Observable<boolean> {
+    const numericId = typeof courseId === 'string' ? parseInt(courseId) : courseId;
+    return this.http.post(`${this.apiUrl}/${numericId}/enroll-student`, JSON.stringify(studentId), {
+      headers: { 'Content-Type': 'application/json' }
+    }).pipe(
+      map(() => true),
+      catchError(() => of(false))
+    );
+  }
+
   submitQuiz(quizId: string | number, answers: { [key: number]: number }): Observable<{ score: number, passed: boolean }> {
     return this.http.post<{ score: number, passed: boolean }>(`${environment.apiUrl}/quizzes/${quizId}/submit`, answers);
+  }
+
+  getQuizByLesson(lessonId: string | number): Observable<any> {
+    const numericLessonId = typeof lessonId === 'string' ? parseInt(lessonId) : lessonId;
+    return this.http.get<any>(`${environment.apiUrl}/quizzes/lesson/${numericLessonId}`);
+  }
+
+  upsertQuiz(quiz: any): Observable<number> {
+    return this.http.post<number>(`${environment.apiUrl}/quizzes/upsert`, quiz);
   }
 
   submitDeliverable(lessonId: string | number, contentUrl: string): Observable<Deliverable> {

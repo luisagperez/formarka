@@ -69,7 +69,7 @@ import { ButtonComponent } from '../../../shared/components/button/button.compon
               <td class="actions-cell">
                 <div class="action-group">
                   <button class="action-btn edit" [routerLink]="['/admin/courses', course.id, 'edit']" title="Editar">✏️</button>
-                  <button class="action-btn delete" (click)="deleteCourse(course.id)" title="Eliminar">🗑️</button>
+                  <button *ngIf="userRole === 'admin'" class="action-btn delete" (click)="deleteCourse(course.id)" title="Eliminar">🗑️</button>
                 </div>
               </td>
             </tr>
@@ -106,21 +106,22 @@ import { ButtonComponent } from '../../../shared/components/button/button.compon
 })
 export class AdminCoursesComponent implements OnInit {
   courses: Course[] = [];
-  userRole: string = 'student';
+
+  get userRole() {
+    return this.authService.currentUser()?.role || 'student';
+  }
 
   constructor(
     private courseService: CourseService,
     private authService: AuthService
-  ) {
-    this.userRole = this.authService.currentUser()?.role || 'student';
-  }
+  ) {}
 
   ngOnInit(): void {
     this.loadCourses();
   }
 
   loadCourses() {
-    this.courseService.getCourses().subscribe(data => this.courses = data);
+    this.courseService.getAdminCourses().subscribe(data => this.courses = data);
   }
 
   assignTeacher(course: Course) {

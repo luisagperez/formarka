@@ -264,8 +264,8 @@
   .logo-img { display: none; }
   .course-meta { border: none; padding-left: 0; }
   .back-btn .text, .menu-toggle .text { display: none; }
-  .sidebar { position: fixed; top: 65px; bottom: 0; left: 0; width: 85%; transform: translateX(-100%); box-shadow: 20px 0 50px rgba(0,0,0,0.1); }
-  .sidebar.open { transform: translateX(0); }
+  .sidebar { position: fixed; top: 65px; bottom: 0; left: 0; width: 85%; transform: translateX(-100%); box-shadow: 20px 0 50px rgba(0,0,0,0.1); visibility: hidden; pointer-events: none; transition: transform 0.3s ease, visibility 0.3s ease; }
+  .sidebar.open { transform: translateX(0); visibility: visible; pointer-events: auto; }
   .mobile-overlay { position: fixed; top: 65px; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(2px); z-index: 1040; }
   .main-stage { padding: 20px; }
   .video-wrapper { border-radius: 16px; }

@@ -134,6 +134,12 @@ import { ButtonComponent } from '../../../shared/components/button/button.compon
       gap: 30px;
     }
 
+    @media (max-width: 768px) {
+      .courses-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
     .course-progress-card {
       background: var(--formarka-white);
       border-radius: 12px;

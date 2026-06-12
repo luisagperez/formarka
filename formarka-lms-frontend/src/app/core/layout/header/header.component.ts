@@ -254,14 +254,18 @@ import { ButtonComponent } from '../../../shared/components/button/button.compon
         flex-direction: column;
         align-items: flex-start;
         padding: 120px 40px;
-        transition: right 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
+        transition: all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
         box-shadow: -10px 0 30px rgba(0,0,0,0.1);
         z-index: 1001;
         gap: 40px;
+        visibility: hidden;
+        pointer-events: none;
       }
 
       .nav-container.open {
         right: 0;
+        visibility: visible;
+        pointer-events: auto;
       }
 
       .nav {

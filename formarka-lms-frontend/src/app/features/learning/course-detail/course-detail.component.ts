@@ -178,6 +178,11 @@ import { ButtonComponent } from '../../../shared/components/button/button.compon
 
     .actions { display: flex; align-items: center; gap: 20px; }
 
+    @media (max-width: 576px) {
+      .actions { flex-direction: column; align-items: stretch; }
+      .price-badge { justify-content: center; }
+    }
+
     .hero-image-container .image-wrapper {
       border-radius: 40px;
       overflow: hidden;

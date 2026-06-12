@@ -75,13 +75,19 @@ export class CoursePlayerComponent implements OnInit {
         this.course = course;
         this.updateProgress();
         
-        // Learning Continuity: Start where you left off
-        const lastLessonId = this.courseService.getLastActivity(course.id);
+        // Learning Continuity: Start where you left off (Backend priority, then local fallback)
+        const lastLessonId = this.course?.lastVisitedLessonId || this.courseService.getLastActivity(course.id);
+        
         if (lastLessonId) {
-          const foundLesson = this.findLessonById(course, lastLessonId);
+          const foundLesson = this.findLessonById(course, lastLessonId.toString());
           this.currentLesson = foundLesson || (course.modules?.[0]?.lessons?.[0]);
         } else if (course.modules && course.modules.length > 0 && course.modules[0].lessons.length > 0) {
           this.currentLesson = course.modules[0].lessons[0];
+        }
+
+        // Ensure current lesson is tracked if initialized
+        if (this.currentLesson) {
+          this.courseService.trackLessonAccess(this.currentLesson.id);
         }
       }
     });
@@ -90,7 +96,7 @@ export class CoursePlayerComponent implements OnInit {
   private findLessonById(course: Course, id: string): Lesson | undefined {
     if (!course.modules) return undefined;
     for (const module of course.modules) {
-      const lesson = module.lessons.find(l => l.id === id);
+      const lesson = module.lessons.find(l => l.id.toString() === id);
       if (lesson) return lesson;
     }
     return undefined;
@@ -98,17 +104,31 @@ export class CoursePlayerComponent implements OnInit {
 
   updateProgress() {
     if (this.course) {
-      this.progress = this.courseService.getCourseProgress(this.course.id);
+      this.progress = this.calculateProgress(this.course);
       if (this.progress === 100) {
         this.showCelebration = true;
       }
     }
   }
 
+  private calculateProgress(course: Course): number {
+    if (!course.modules) return 0;
+    let total = 0;
+    let completed = 0;
+    course.modules.forEach(m => {
+      m.lessons.forEach(l => {
+        total++;
+        if (l.isCompleted) completed++;
+      });
+    });
+    return total > 0 ? Math.round((completed / total) * 100) : 0;
+  }
+
   selectLesson(lesson: Lesson): void {
     this.currentLesson = lesson;
     if (this.course) {
       this.courseService.saveLastActivity(this.course.id, lesson.id);
+      this.courseService.trackLessonAccess(lesson.id);
     }
     // Reset info expansion for new lesson
     this.isInfoExpanded = false;
@@ -136,13 +156,26 @@ export class CoursePlayerComponent implements OnInit {
 
   downloadCertificate() {
     if (!this.course) return;
-    
+
+    this.courseService.getCertificate(this.course.id).subscribe({
+      next: (cert) => {
+        this.generateCertificatePdf(cert);
+      },
+      error: (err) => {
+        console.error('Error fetching certificate:', err);
+        // Fallback for UI if needed, though the API should handle completion check
+        alert('Asegúrate de haber completado el 100% del curso para generar tu certificado.');
+      }
+    });
+  }
+
+  private generateCertificatePdf(cert: any) {
     const printWindow = window.open('', '_blank');
     if (printWindow) {
       printWindow.document.write(`
         <html>
           <head>
-            <title>Certificado Formarka - ${this.course.title}</title>
+            <title>Certificado Formarka - ${cert.courseTitle}</title>
             <style>
               @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;800&display=swap');
               
@@ -218,6 +251,7 @@ export class CoursePlayerComponent implements OnInit {
               .info-label { font-size: 0.75rem; color: #999; text-transform: uppercase; font-weight: 700; }
               .info-value { font-size: 1rem; color: #333; font-weight: 700; }
               .signature { border-top: 2px solid #333; width: 180px; padding-top: 10px; font-weight: 700; color: #4e0767; text-align: center; }
+              .cert-code { position: absolute; bottom: 30px; right: 80px; font-size: 0.7rem; color: #ccc; }
               
               @media print { 
                 .no-print { display: none; } 
@@ -237,15 +271,15 @@ export class CoursePlayerComponent implements OnInit {
               <h1>Certificado</h1>
               <p class="subtitle">Se otorga el presente reconocimiento a:</p>
               
-              <div class="user-name">${this.userName}</div>
+              <div class="user-name">${cert.studentName}</div>
               
               <p class="course-label">Por haber completado satisfactoriamente el programa de:</p>
-              <div class="course-name">${this.course.title}</div>
+              <div class="course-name">${cert.courseTitle}</div>
               
               <div class="footer-info">
                 <div class="info-item">
                   <div class="info-label">Intensidad Horaria</div>
-                  <div class="info-value">${this.course.totalHours} Horas Lectivas</div>
+                  <div class="info-value">${this.course?.totalHours || 20} Horas Lectivas</div>
                 </div>
                 
                 <div class="signature">
@@ -254,9 +288,11 @@ export class CoursePlayerComponent implements OnInit {
                 
                 <div class="info-item" style="text-align: right;">
                   <div class="info-label">Fecha de Emisión</div>
-                  <div class="info-value">${new Date().toLocaleDateString()}</div>
+                  <div class="info-value">${new Date(cert.issueDate).toLocaleDateString()}</div>
                 </div>
               </div>
+
+              <div class="cert-code">Código de Verificación: ${cert.certificateCode}</div>
               
               <button class="no-print" onclick="window.print()" style="margin-top: 30px; padding: 12px 24px; background: #4e0767; color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: 800; font-size: 0.9rem;">🖨️ Imprimir / Guardar PDF</button>
             </div>

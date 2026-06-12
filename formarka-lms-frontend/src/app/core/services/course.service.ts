@@ -182,6 +182,21 @@ export class CourseService {
     return data ? JSON.parse(data) : {};
   }
 
+  trackLessonAccess(lessonId: string | number): void {
+    const numericLessonId = typeof lessonId === 'string' ? parseInt(lessonId) : lessonId;
+    if (!isNaN(numericLessonId)) {
+      this.http.post(`${environment.apiUrl}/lessons/${numericLessonId}/track`, {}).subscribe({
+        next: () => console.log('API: Lesson access tracked'),
+        error: (err) => console.error('API Error tracking lesson access:', err)
+      });
+    }
+  }
+
+  getCertificate(courseId: string | number): Observable<any> {
+    const numericId = typeof courseId === 'string' ? parseInt(courseId) : courseId;
+    return this.http.get<any>(`${environment.apiUrl}/certificates/course/${numericId}`);
+  }
+
   completeLesson(courseId: string | number, lessonId: string | number): void {
     const progress = this.getAllProgress();
     progress[`${courseId}_${lessonId}`] = true;

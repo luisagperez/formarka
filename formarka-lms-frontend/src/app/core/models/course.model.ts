@@ -76,4 +76,5 @@ export interface Course {
   modules?: Module[];
   enrolledStudents?: StudentProgress[];
   isEnrolled?: boolean;
+  lastVisitedLessonId?: string | number;
 }

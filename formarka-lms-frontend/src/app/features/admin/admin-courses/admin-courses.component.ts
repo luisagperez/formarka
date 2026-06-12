@@ -13,21 +13,21 @@ import { ButtonComponent } from '../../../shared/components/button/button.compon
   template: `
     <div class="container admin-container animate-up">
       <div class="admin-header">
-        <div>
+        <div class="title-area">
           <h1 class="text-gradient">Gestión de la Academia</h1>
           <p>{{ userRole === 'admin' ? 'Administra el catálogo de cursos, usuarios y el progreso de los estudiantes.' : 'Administra el catálogo de cursos y el progreso de tus estudiantes.' }}</p>
         </div>
         <div class="header-actions">
-          <app-button *ngIf="userRole === 'admin'" variant="outline" routerLink="/admin/users">
+          <app-button *ngIf="userRole === 'admin'" variant="outline" routerLink="/admin/users" class="full-width-mobile">
             Gestionar Usuarios
           </app-button>
-          <app-button routerLink="/admin/courses/new">
+          <app-button routerLink="/admin/courses/new" class="full-width-mobile">
             <span class="icon">+</span> Nuevo Curso
           </app-button>
         </div>
       </div>
 
-      <div class="table-card glass">
+      <div class="table-card glass table-responsive">
         <table class="admin-table">
           <thead>
             <tr>
@@ -79,7 +79,7 @@ import { ButtonComponent } from '../../../shared/components/button/button.compon
     </div>
   `,
   styles: [`
-    .admin-container { padding: 40px 0; }
+    .admin-container { padding: 40px 24px; }
     .admin-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 40px; }
     .header-actions { display: flex; gap: 16px; }
     .table-card { border-radius: 32px; overflow: hidden; background: white; }
@@ -102,6 +102,16 @@ import { ButtonComponent } from '../../../shared/components/button/button.compon
     .action-btn:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
     .action-btn.edit:hover { border-color: var(--brand-purple-deep); color: var(--brand-purple-deep); }
     .action-btn.delete:hover { border-color: #ef4444; color: #ef4444; }
+
+    /* Responsive Styles */
+    @media (max-width: 768px) {
+      .admin-container { padding: 20px; }
+      .admin-header { flex-direction: column; align-items: flex-start; gap: 20px; }
+      .header-actions { width: 100%; flex-direction: column; gap: 10px; }
+      .full-width-mobile { width: 100%; }
+      .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      .admin-table { min-width: 600px; } /* Ensure table doesn't squash too much */
+    }
   `]
 })
 export class AdminCoursesComponent implements OnInit {

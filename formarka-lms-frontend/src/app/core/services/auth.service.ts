@@ -127,6 +127,7 @@ export class AuthService {
 
   async signOut() {
     await this.supabase.auth.signOut();
+    // Use NgZone or direct location change to ensure state is cleared
     window.location.href = '/auth/login';
   }
 

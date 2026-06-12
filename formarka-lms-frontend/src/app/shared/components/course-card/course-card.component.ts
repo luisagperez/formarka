@@ -9,7 +9,7 @@ import { CourseService } from '../../../core/services/course.service';
   standalone: true,
   imports: [CommonModule, ButtonComponent],
   template: `
-    <div class="course-card">
+    <div class="course-card" (click)="onAction.emit(course.id)" style="cursor: pointer;">
       <div class="card-image">
         <img [src]="course.thumbnailUrl" [alt]="course.title">
         <span class="category">{{ course.category }}</span>
@@ -31,8 +31,8 @@ import { CourseService } from '../../../core/services/course.service';
         </div>
 
         <div class="card-footer">
-          <app-button variant="outline" (onClick)="onAction.emit(course.id)">
-            {{ isEnrolled ? 'Continuar' : 'Ver Curso' }}
+          <app-button variant="outline">
+            {{ isEnrolled ? 'Continuar formación' : 'Ver Curso' }}
           </app-button>
         </div>
       </div>

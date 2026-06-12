@@ -25,11 +25,14 @@ import { HeaderComponent } from './header/header.component';
       display: flex;
       flex-direction: column;
       min-height: 100vh;
+      width: 100%;
+      overflow-x: hidden;
     }
 
     .content {
       flex: 1;
       padding: 40px 0;
+      width: 100%;
     }
 
     .footer {

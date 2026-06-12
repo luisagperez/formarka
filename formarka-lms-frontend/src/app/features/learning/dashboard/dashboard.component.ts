@@ -16,8 +16,10 @@ import { ButtonComponent } from '../../../shared/components/button/button.compon
   template: `
     <div class="container">
       <div class="dashboard-header">
-        <h1>¡Hola, {{ authService.currentUser()?.name }}!</h1>
-        <p>Continúa donde lo dejaste y sigue construyendo tu marca.</p>
+        <div class="title-area">
+          <h1>¡Hola, {{ authService.currentUser()?.name }}!</h1>
+          <p>Continúa donde lo dejaste y sigue construyendo tu marca.</p>
+        </div>
       </div>
 
       <div class="stats-grid">
@@ -135,6 +137,9 @@ import { ButtonComponent } from '../../../shared/components/button/button.compon
     }
 
     @media (max-width: 768px) {
+      .dashboard-header h1 { font-size: 2rem; }
+      .stats-grid { grid-template-columns: 1fr; }
+      .stat-card { padding: 20px; }
       .courses-grid {
         grid-template-columns: 1fr;
       }

@@ -19,6 +19,8 @@
   z-index: 1100;
   box-shadow: 0 4px 20px rgba(0,0,0,0.02);
   flex-shrink: 0;
+  position: sticky;
+  top: 0;
 }
 
 .header-left {
@@ -32,23 +34,30 @@
 .logo-img { height: 35px; }
 
 .back-btn {
-  background: #f5f0f7;
+  background: var(--brand-purple-deep);
   border: none;
-  padding: 8px 12px;
-  border-radius: 10px;
-  color: var(--brand-purple-deep);
+  padding: 10px 18px;
+  border-radius: 12px;
+  color: white;
   font-weight: 700;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   text-decoration: none;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 4px 12px rgba(78, 7, 103, 0.2);
 }
 
-.back-btn:hover { background: #ede0f5; transform: translateY(-2px); }
-.back-btn:active { background: var(--brand-purple-deep); color: white; transform: scale(1.1); }
+.back-btn:hover { 
+  background: var(--brand-purple-light); 
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(78, 7, 103, 0.3);
+}
+.back-btn:active { transform: scale(0.95); }
+
+.back-btn .icon { font-size: 1.1rem; }
 
 .course-meta {
   display: flex;

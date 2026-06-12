@@ -13,16 +13,16 @@ import { FormFieldComponent } from '../../../shared/components/form-field/form-f
   template: `
     <div class="container admin-container animate-up">
       <div class="admin-header">
-        <div>
+        <div class="title-area">
           <h1 class="text-gradient">Gestión de Usuarios</h1>
           <p>Administra administradores, profesores y alumnos del LMS.</p>
         </div>
-        <app-button (onClick)="showAddModal = true">
+        <app-button (onClick)="showAddModal = true" class="full-width-mobile">
           <span class="icon">+</span> Nuevo Usuario
         </app-button>
       </div>
 
-      <div class="table-card glass">
+      <div class="table-card glass table-responsive">
         <table class="admin-table">
           <thead>
             <tr>
@@ -150,6 +150,25 @@ export class AdminUsersComponent implements OnInit {
       });
     } else {
       this.authService.addUser({ ...userData, id: Math.random().toString(36).substring(2, 9) }).subscribe(() => {
+        this.loadUsers();
+        this.closeModal();
+      });
+    }
+  }
+
+  deleteUser(id: string) {
+    if (confirm('¿Eliminar usuario?')) {
+      this.authService.deleteUser(id).subscribe(() => this.loadUsers());
+    }
+  }
+
+  closeModal() {
+    this.showAddModal = false;
+    this.editingUser = null;
+    this.userForm.reset({ role: 'student' });
+  }
+}
+ {
         this.loadUsers();
         this.closeModal();
       });

@@ -123,3 +123,22 @@
 .modal-card app-button {
   width: 100%;
 }
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+  .auth-container {
+    padding: 15px;
+  }
+  
+  .auth-card {
+    padding: 30px 20px;
+  }
+  
+  .auth-header h1 {
+    font-size: 1.5rem;
+  }
+  
+  .modal-card {
+    padding: 30px 20px;
+  }
+}

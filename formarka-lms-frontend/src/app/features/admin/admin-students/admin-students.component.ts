@@ -13,17 +13,17 @@ import { FormsModule } from '@angular/forms';
   template: `
     <div class="container admin-container animate-up">
       <div class="admin-header">
-        <div>
+        <div class="title-area">
           <h1 class="text-gradient">Estudiantes del Curso</h1>
           <p>Seguimiento de progreso, calificaciones y entregables de {{ course?.title }}.</p>
         </div>
         <div class="header-actions">
-          <app-button variant="outline" (onClick)="enrollStudent()">Inscribir Alumno</app-button>
-          <app-button variant="outline" routerLink="/admin/courses">Volver</app-button>
+          <app-button variant="outline" (onClick)="enrollStudent()" class="full-width-mobile">Inscribir Alumno</app-button>
+          <app-button variant="outline" routerLink="/admin/courses" class="full-width-mobile">Volver</app-button>
         </div>
       </div>
 
-      <div class="table-card glass">
+      <div class="table-card glass table-responsive">
         <table class="admin-table">
           <thead>
             <tr>
@@ -188,6 +188,23 @@ export class AdminStudentsComponent implements OnInit {
       this.deliverables = d;
       this.isLoadingDeliverables = false;
     });
+  }
+
+  submitGrade(delId: string | number) {
+    if (!this.selectedStudent) return;
+    
+    this.courseService.gradeDeliverable(delId, this.gradeValue, this.feedbackText).subscribe(success => {
+      if (success) {
+        alert(`Calificación de ${this.gradeValue} guardada con éxito.`);
+        this.loadStudents();
+        this.selectedStudent = null;
+      } else {
+        alert('Error al guardar la calificación.');
+      }
+    });
+  }
+}
+});
   }
 
   submitGrade(delId: string | number) {

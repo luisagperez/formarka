@@ -15,13 +15,15 @@ import { FormFieldComponent } from '../../../shared/components/form-field/form-f
   template: `
     <div class="container admin-edit-container animate-up">
       <div class="edit-header">
-        <nav class="breadcrumb">
-          <a routerLink="/admin/courses">Gestión de Cursos</a> 
-          <span class="separator">/</span> 
-          <span class="current">{{ isEditMode ? 'Editar' : 'Nuevo' }} Curso</span>
-        </nav>
-        <h1 class="text-gradient">{{ isEditMode ? 'Panel de Edición Avanzada' : 'Crea una nueva Experiencia' }}</h1>
-        <p class="subtitle">Configura cada detalle de tu programa educativo, desde la intensidad horaria hasta los entregables.</p>
+        <div class="title-area">
+          <nav class="breadcrumb">
+            <a routerLink="/admin/courses">Gestión de Cursos</a> 
+            <span class="separator">/</span> 
+            <span class="current">{{ isEditMode ? 'Editar' : 'Nuevo' }} Curso</span>
+          </nav>
+          <h1 class="text-gradient">{{ isEditMode ? 'Panel de Edición Avanzada' : 'Crea una nueva Experiencia' }}</h1>
+          <p class="subtitle">Configura cada detalle de tu programa educativo, desde la intensidad horaria hasta los entregables.</p>
+        </div>
       </div>
 
       <div class="edit-content">
@@ -95,27 +97,27 @@ import { FormFieldComponent } from '../../../shared/components/form-field/form-f
 
           <!-- Estructura de Módulos y Lecciones -->
           <div class="form-card glass animate-up" style="animation-delay: 0.2s">
-            <div class="card-header flex-between">
+            <div class="card-header flex-between flex-column-mobile">
               <div class="flex-align">
                 <span class="step-num">2</span>
                 <h3>Plan de Estudios y Recursos</h3>
               </div>
-              <button type="button" class="add-btn" (click)="addModule()">
+              <button type="button" class="add-btn full-width-mobile" (click)="addModule()">
                 + Añadir Módulo
               </button>
             </div>
 
             <div formArrayName="modules" class="modules-list">
               <div *ngFor="let module of modules.controls; let i=index" [formGroupName]="i" class="module-item animate-up">
-                <div class="module-main-row">
-                  <div class="module-drag-handle">⋮⋮</div>
+                <div class="module-main-row flex-column-mobile">
+                  <div class="module-drag-handle hide-mobile">⋮⋮</div>
                   <input type="text" formControlName="title" placeholder="Título del Módulo" class="module-title-input">
                   <button type="button" class="delete-icon-btn" (click)="removeModule(i)" title="Eliminar Módulo">🗑️</button>
                 </div>
 
-                <div formArrayName="lessons" class="lessons-list">
+                <div formArrayName="lessons" class="lessons-list no-margin-mobile">
                   <div *ngFor="let lesson of getLessons(i).controls; let j=index" [formGroupName]="j" class="lesson-card">
-                    <div class="lesson-header">
+                    <div class="lesson-header flex-column-mobile">
                       <input type="text" formControlName="title" placeholder="Título de la lección" class="lesson-title-input">
                       <div class="lesson-type-tag">
                         <select formControlName="type">
@@ -154,7 +156,7 @@ import { FormFieldComponent } from '../../../shared/components/form-field/form-f
                         <!-- Quiz Section -->
                         <div *ngSwitchCase="'quiz'" class="quiz-edit-box card shadow-sm">
                           <div [formGroupName]="'quiz'">
-                            <div class="quiz-info-row">
+                            <div class="quiz-info-row stack-mobile">
                               <app-form-field label="Título del Quiz" [control]="getQuizControl(i, j, 'title')" placeholder="Ej. Evaluación de Marca"></app-form-field>
                               <app-form-field label="Puntaje para Aprobar" type="number" [control]="getQuizControl(i, j, 'passingScore')" placeholder="70"></app-form-field>
                             </div>
@@ -168,7 +170,7 @@ import { FormFieldComponent } from '../../../shared/components/form-field/form-f
                                   <button type="button" class="res-remove" (click)="removeQuestion(i, j, qi)">×</button>
                                 </div>
 
-                                <div formArrayName="options" class="options-list">
+                                <div formArrayName="options" class="options-list no-margin-mobile">
                                   <div *ngFor="let option of getOptions(i, j, qi).controls; let oi=index" [formGroupName]="oi" class="option-row">
                                     <input type="checkbox" formControlName="isCorrect" class="opt-check">
                                     <input type="text" formControlName="text" placeholder="Opción {{ oi + 1 }}" class="opt-input">
@@ -202,7 +204,7 @@ import { FormFieldComponent } from '../../../shared/components/form-field/form-f
                           <button type="button" (click)="addResource(i, j)" class="small-add-btn">+ Añadir Link</button>
                         </div>
                         <div formArrayName="resources" class="resources-list">
-                          <div *ngFor="let res of getResources(i, j).controls; let k=index" [formGroupName]="k" class="resource-row">
+                          <div *ngFor="let res of getResources(i, j).controls; let k=index" [formGroupName]="k" class="resource-row flex-column-mobile">
                             <input type="text" formControlName="title" placeholder="Nombre del recurso" class="res-input">
                             <input type="text" formControlName="url" placeholder="URL del recurso" class="res-input">
                             <button type="button" (click)="removeResource(i, j, k)" class="res-remove">×</button>
@@ -219,11 +221,11 @@ import { FormFieldComponent } from '../../../shared/components/form-field/form-f
             </div>
           </div>
 
-          <div class="form-actions animate-up" style="animation-delay: 0.3s">
-            <app-button variant="outline" type="button" routerLink="/admin/courses">
+          <div class="form-actions animate-up stack-mobile" style="animation-delay: 0.3s">
+            <app-button variant="outline" type="button" routerLink="/admin/courses" class="full-width-mobile">
               Descartar
             </app-button>
-            <app-button type="submit" [loading]="isSaving" [disabled]="courseForm.invalid">
+            <app-button type="submit" [loading]="isSaving" [disabled]="courseForm.invalid" class="full-width-mobile">
               {{ isEditMode ? 'Guardar Cambios' : 'Publicar Curso' }}
             </app-button>
           </div>
@@ -232,7 +234,7 @@ import { FormFieldComponent } from '../../../shared/components/form-field/form-f
     </div>
   `,
   styles: [`
-    .admin-edit-container { padding: 40px 0; }
+    .admin-edit-container { padding: 40px 24px; }
     .edit-header { margin-bottom: 40px; }
     .breadcrumb { font-size: 0.9rem; margin-bottom: 15px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
     .breadcrumb a { color: var(--brand-purple-deep); text-decoration: none; }
@@ -301,6 +303,22 @@ import { FormFieldComponent } from '../../../shared/components/form-field/form-f
     .opt-input { flex: 1; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 12px; font-size: 0.9rem; }
     .opt-check { width: 18px; height: 18px; cursor: pointer; accent-color: var(--brand-purple-deep); }
     .add-question-btn { background: var(--brand-purple-deep); color: white; border: none; padding: 10px 20px; border-radius: 30px; font-weight: 700; cursor: pointer; width: 100%; margin-top: 10px; }
+
+    /* Responsive Styles */
+    @media (max-width: 768px) {
+      .admin-edit-container { padding: 20px; }
+      .edit-header h1 { font-size: 2rem; }
+      .form-card { padding: 20px; border-radius: 20px; }
+      .form-row, .quiz-info-row { grid-template-columns: 1fr; gap: 15px; }
+      .flex-column-mobile { flex-direction: column; align-items: flex-start; gap: 15px; }
+      .full-width-mobile { width: 100%; }
+      .hide-mobile { display: none; }
+      .no-margin-mobile { margin-left: 0 !important; }
+      .stack-mobile { flex-direction: column; gap: 10px; }
+      .module-item { padding: 15px; border-radius: 15px; }
+      .lesson-card { padding: 15px; border-radius: 15px; }
+      .options-list { margin-left: 0; }
+    }
   `]
 })
 export class AdminCourseEditComponent implements OnInit {

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, ActivatedRoute } from '@angular/router';
 import { SafePipe } from '../../../shared/pipes/safe.pipe';
@@ -17,7 +17,7 @@ import { CommentsSectionComponent } from '../../../shared/components/comments/co
 
   styleUrl: './course-player.component.css'
 })
-export class CoursePlayerComponent implements OnInit {
+export class CoursePlayerComponent implements OnInit, OnDestroy {
   course?: Course;
   currentLesson?: Lesson;
   progress: number = 0;
@@ -50,19 +50,33 @@ export class CoursePlayerComponent implements OnInit {
     if (window.innerWidth <= 1024) {
       this.isSidebarOpen = false;
     }
+  }
 
-    // Simulate video end detection for the prototype
-    this.setupVideoCompletionListener();
+  ngOnDestroy(): void {
+    if (this.completionInterval) {
+      clearInterval(this.completionInterval);
+    }
   }
 
   setupVideoCompletionListener() {
+    // Clear previous interval if any
+    if (this.completionInterval) {
+      clearInterval(this.completionInterval);
+    }
+
     // In a real app with YouTube IFrame API, we would listen for StateChange === ENDED
-    // For this prototype, we'll simulate it by auto-completing after 15 seconds on a video lesson
-    setTimeout(() => {
-      if (this.currentLesson?.type === 'video' && !this.currentLesson.isCompleted) {
-        this.markAsCompleted();
-      }
-    }, 15000);
+    // For this prototype, we'll simulate it by checking if it's a video lesson
+    if (this.currentLesson?.type === 'video' && !this.currentLesson.isCompleted) {
+      // Simulate watching the video over 10 seconds
+      let progressCount = 0;
+      this.completionInterval = setInterval(() => {
+        progressCount += 10;
+        if (progressCount >= 100) {
+          this.markAsCompleted();
+          clearInterval(this.completionInterval);
+        }
+      }, 1000);
+    }
   }
 
   toggleSidebar() {
@@ -88,6 +102,7 @@ export class CoursePlayerComponent implements OnInit {
         // Ensure current lesson is tracked if initialized
         if (this.currentLesson) {
           this.courseService.trackLessonAccess(this.currentLesson.id);
+          this.setupVideoCompletionListener();
         }
       }
     });
@@ -129,6 +144,7 @@ export class CoursePlayerComponent implements OnInit {
     if (this.course) {
       this.courseService.saveLastActivity(this.course.id, lesson.id);
       this.courseService.trackLessonAccess(lesson.id);
+      this.setupVideoCompletionListener();
     }
     // Reset info expansion for new lesson
     this.isInfoExpanded = false;

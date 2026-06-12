@@ -20,7 +20,12 @@ import { ButtonComponent } from '../../../shared/components/button/button.compon
               <span class="curr">{{ course.category }}</span>
             </nav>
             <h1 class="hero-title">{{ course.title }}</h1>
-            <p class="description">{{ course.description }}</p>
+            <div class="description-container" [class.expanded]="isDescriptionExpanded">
+              <p class="description">{{ course.description }}</p>
+              <button class="read-more-btn" (click)="isDescriptionExpanded = !isDescriptionExpanded">
+                {{ isDescriptionExpanded ? 'Leer menos' : 'Leer descripción completa' }}
+              </button>
+            </div>
             
             <div class="meta-info">
               <div class="meta-item">
@@ -170,7 +175,37 @@ import { ButtonComponent } from '../../../shared/components/button/button.compon
       letter-spacing: -2px;
     }
 
-    .description { font-size: 1.2rem; margin-bottom: 40px; opacity: 0.9; line-height: 1.5; }
+    .description-container {
+      margin-bottom: 40px;
+      position: relative;
+    }
+
+    .description { 
+      font-size: 1.2rem; 
+      opacity: 0.9; 
+      line-height: 1.5;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      margin: 0;
+    }
+
+    .description-container.expanded .description {
+      -webkit-line-clamp: unset;
+    }
+
+    .read-more-btn {
+      background: none;
+      border: none;
+      color: var(--brand-purple-light);
+      font-weight: 700;
+      cursor: pointer;
+      padding: 0;
+      margin-top: 10px;
+      font-size: 0.9rem;
+      text-decoration: underline;
+    }
 
     .meta-info { display: flex; gap: 40px; margin-bottom: 50px; }
     .meta-item .label { display: block; font-size: 0.7rem; text-transform: uppercase; color: var(--brand-purple-light); margin-bottom: 4px; font-weight: 800; }
@@ -272,6 +307,7 @@ export class CourseDetailComponent implements OnInit {
   course?: Course;
   isEnrolling = false;
   isEnrolled = false;
+  isDescriptionExpanded = false;
   progress = 0;
 
   constructor(

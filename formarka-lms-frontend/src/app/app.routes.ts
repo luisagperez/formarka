@@ -6,6 +6,7 @@ import { CourseDetailComponent } from './features/learning/course-detail/course-
 import { DashboardComponent } from './features/learning/dashboard/dashboard.component';
 import { adminGuard } from './core/guards/admin.guard';
 import { authGuard } from './core/guards/auth.guard';
+import { enrolledGuard } from './core/guards/enrolled.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'courses', pathMatch: 'full' },
@@ -16,7 +17,7 @@ export const routes: Routes = [
   { 
     path: 'learning/:courseId', 
     component: CoursePlayerComponent,
-    canActivate: [authGuard]
+    canActivate: [authGuard, enrolledGuard]
   },
   {
     path: '',

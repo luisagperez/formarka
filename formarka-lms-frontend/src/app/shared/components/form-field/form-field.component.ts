@@ -16,13 +16,17 @@ import { ReactiveFormsModule, FormControl } from '@angular/forms';
           [formControl]="control"
           [placeholder]="placeholder"
           class="input"
-          [class.error]="control.invalid && control.touched"
+          [class.error]="control.invalid && (control.touched || control.dirty || control.parent?.dirty)"
         />
       </div>
-      <div class="error-message" *ngIf="control.invalid && control.touched">
+      <div class="error-message" *ngIf="control.invalid && (control.touched || control.dirty || control.parent?.dirty)">
         <span *ngIf="control.errors?.['required']">Este campo es requerido</span>
         <span *ngIf="control.errors?.['email']">Email no válido</span>
         <span *ngIf="control.errors?.['minlength']">Mínimo {{ control.errors?.['minlength'].requiredLength }} caracteres</span>
+        <span *ngIf="control.errors?.['maxlength']">Máximo {{ control.errors?.['maxlength'].requiredLength }} caracteres</span>
+        <span *ngIf="control.errors?.['min']">El valor mínimo es {{ control.errors?.['min'].min }}</span>
+        <span *ngIf="control.errors?.['max']">El valor máximo es {{ control.errors?.['max'].max }}</span>
+        <span *ngIf="control.errors?.['pattern']">Formato no válido</span>
       </div>
     </div>
   `,

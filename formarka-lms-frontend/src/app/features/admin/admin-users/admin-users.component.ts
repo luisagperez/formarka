@@ -69,18 +69,24 @@ import { FormFieldComponent } from '../../../shared/components/form-field/form-f
             
             <div class="form-field">
               <label class="label">Rol</label>
-              <select formControlName="role" class="select-input">
+              <select 
+                formControlName="role" 
+                class="select-input"
+                [class.input-error]="userForm.get('role')?.invalid && (userForm.get('role')?.touched || userForm.dirty)">
                 <option value="admin">Administrador</option>
                 <option value="teacher">Profesor</option>
                 <option value="student">Alumno</option>
               </select>
+              <span class="error-text" *ngIf="userForm.get('role')?.invalid && (userForm.get('role')?.touched || userForm.dirty)">
+                El rol es requerido
+              </span>
             </div>
 
             <app-form-field *ngIf="userForm.get('role')?.value === 'teacher'" label="Especialidad" [control]="getControl('specialty')"></app-form-field>
 
             <div class="modal-actions">
               <app-button variant="outline" type="button" (onClick)="closeModal()">Cancelar</app-button>
-              <app-button type="submit">{{ editingUser ? 'Actualizar' : 'Crear' }}</app-button>
+              <app-button type="submit" [disabled]="userForm.invalid">{{ editingUser ? 'Actualizar' : 'Crear' }}</app-button>
             </div>
           </form>
         </div>
@@ -106,6 +112,16 @@ import { FormFieldComponent } from '../../../shared/components/form-field/form-f
     .modal-content { background: white; padding: 40px; border-radius: 32px; width: 500px; }
     .modal-actions { display: flex; justify-content: flex-end; gap: 16px; margin-top: 24px; }
     .select-input { width: 100%; padding: 12px; border-radius: 12px; border: 1.5px solid #eee; }
+
+    /* Responsive Styles */
+    @media (max-width: 768px) {
+      .admin-container { padding: 20px; }
+      .admin-header { flex-direction: column; align-items: flex-start; gap: 20px; }
+      .full-width-mobile { width: 100%; }
+      .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      .admin-table { min-width: 600px; }
+      .modal-content { width: 90%; padding: 20px; border-radius: 20px; }
+    }
   `]
 })
 export class AdminUsersComponent implements OnInit {
@@ -140,7 +156,10 @@ export class AdminUsersComponent implements OnInit {
   }
 
   saveUser() {
-    if (this.userForm.invalid) return;
+    if (this.userForm.invalid) {
+      this.userForm.markAllAsTouched();
+      return;
+    }
     const userData = this.userForm.value;
     
     if (this.editingUser) {
@@ -150,25 +169,6 @@ export class AdminUsersComponent implements OnInit {
       });
     } else {
       this.authService.addUser({ ...userData, id: Math.random().toString(36).substring(2, 9) }).subscribe(() => {
-        this.loadUsers();
-        this.closeModal();
-      });
-    }
-  }
-
-  deleteUser(id: string) {
-    if (confirm('¿Eliminar usuario?')) {
-      this.authService.deleteUser(id).subscribe(() => this.loadUsers());
-    }
-  }
-
-  closeModal() {
-    this.showAddModal = false;
-    this.editingUser = null;
-    this.userForm.reset({ role: 'student' });
-  }
-}
- {
         this.loadUsers();
         this.closeModal();
       });

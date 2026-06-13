@@ -179,7 +179,7 @@ export class CourseCardComponent implements OnInit {
   progress = 0;
 
   ngOnInit(): void {
-    this.isEnrolled = this.courseService.isEnrolled(this.course.id);
+    this.isEnrolled = this.course.isEnrolled || false;
     if (this.isEnrolled) {
       this.progress = this.courseService.getCourseProgress(this.course.id);
     }

@@ -29,7 +29,7 @@ export class AuthService {
   private _users: User[] = [];
 
   constructor() {
-    this.supabase = createClient(environment.supabaseUrl, environment.supabaseKey);
+    this.supabase = createClient(environment.supabaseUrl, environment.supabasePublishableKey);
     
     // Listen for auth state changes (crucial for email verification redirects)
     this.supabase.auth.onAuthStateChange(async (event, session) => {
@@ -72,10 +72,8 @@ export class AuthService {
         }
       } catch (error) {
         console.error('Error al verificar estado del perfil:', error);
-        // Por seguridad, si falla la verificación y estamos en auth, lo mandamos a completar
-        if (currentUrl.includes('/auth/') && !currentUrl.includes('/auth/complete-profile')) {
-          this.router.navigate(['/auth/complete-profile']);
-        }
+        // Throw the error so the caller can handle it (e.g. show a message instead of redirecting incorrectly)
+        throw error;
       }
     }
   }

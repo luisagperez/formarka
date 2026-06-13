@@ -17,79 +17,24 @@ export class CourseService {
   private http = inject(HttpClient);
   private apiUrl = `${environment.apiUrl}/courses`;
 
-  // Enhanced mock data (kept for fallback and development reference)
-  private _courses: Course[] = [
-    {
-      "id": "1",
-      "title": "Construye tu Marca desde Cero",
-      "description": "Aprende los fundamentos del diseño de marca para emprendedores.",
-      "thumbnailUrl": "construye tu marca.png",
-      "category": "Diseño",
-      "level": "básico",
-      "instructorName": "Profe Luis",
-      "instructorId": "t1",
-      "totalHours": 20,
-      "enrolledStudents": [
-        { "studentId": "s1", "studentName": "Estudiante Juan", "progress": 100, "grade": 95, "completedDate": "2026-05-01" },
-        { "studentId": "s2", "studentName": "Estudiante Ana", "progress": 45 }
-      ],
-      "modules": [
-        {
-          "id": "m1",
-          "title": "Módulo 1: Estrategia de marca",
-          "isOpen": true,
-          "lessons": [
-            {
-              "id": "l1_1",
-              "title": "Introducción al ADN de Marca",
-              "type": "video",
-              "contentUrl": "https://www.youtube.com/embed/dQw4w9WgXcQ",
-              "duration": "08:45",
-              "isCompleted": true,
-              "resources": [
-                { "id": "r1_1", "title": "Aspectos clave de la estrategia de marca", "url": "https://drive.google.com/file/d/1zu50WntNXq7djVGU8FIsUjy1ERrUqS5P/view?usp=sharing", "type": "pdf" }
-              ]
-            }
-          ]
-        }
-      ]
-    }
-  ];
-
   private PROGRESS_KEY = 'f-lms-progress';
   private LAST_ACTIVITY_KEY = 'f-lms-last-activity';
   private ENROLLMENT_KEY = 'f-lms-enrollments';
 
   getCourses(): Observable<Course[]> {
     return this.http.get<Course[]>(this.apiUrl).pipe(
-      map(courses => this.injectProgress(courses)),
-      catchError(err => {
-        console.error('Error fetching courses from API, using mocks:', err);
-        return of(this.injectProgress(this._courses));
-      }),
       delay(400)
     );
   }
 
   getCourse(id: string | number): Observable<Course | undefined> {
     return this.http.get<Course>(`${this.apiUrl}/${id}`).pipe(
-      map(course => this.injectProgress([course])[0]),
-      catchError(err => {
-        console.error(`Error fetching course ${id} from API, using mocks:`, err);
-        const mockCourse = this._courses.find(c => c.id === id.toString());
-        return of(mockCourse ? this.injectProgress([mockCourse])[0] : undefined);
-      }),
       delay(300)
     );
   }
 
   getMyCourses(): Observable<Course[]> {
     return this.http.get<Course[]>(`${this.apiUrl}/my-courses`).pipe(
-      map(courses => this.injectProgress(courses)),
-      catchError(err => {
-        console.error('Error fetching my courses from API, using mocks:', err);
-        return of(this.injectProgress(this._courses.slice(0, 1)));
-      }),
       delay(400)
     );
   }
@@ -136,6 +81,14 @@ export class CourseService {
     return this.http.post(`${this.apiUrl}/${numericId}/enroll-student`, JSON.stringify(studentId), {
       headers: { 'Content-Type': 'application/json' }
     }).pipe(
+      map(() => true),
+      catchError(() => of(false))
+    );
+  }
+
+  unenrollStudent(courseId: string | number, studentId: string): Observable<boolean> {
+    const numericId = typeof courseId === 'string' ? parseInt(courseId) : courseId;
+    return this.http.delete(`${this.apiUrl}/${numericId}/enroll-student/${studentId}`).pipe(
       map(() => true),
       catchError(() => of(false))
     );
@@ -222,20 +175,6 @@ export class CourseService {
     // This is a bit complex without the full course object loaded.
     // For now, we return 0 if not fully implemented or used in a place where we have the course.
     return 0; 
-  }
-
-  private injectProgress(courses: Course[]): Course[] {
-    const progress = this.getAllProgress();
-    return courses.map(course => {
-      if (course.modules) {
-        course.modules.forEach(m => {
-          m.lessons.forEach(l => {
-            l.isCompleted = progress[`${course.id}_${l.id}`] || false;
-          });
-        });
-      }
-      return course;
-    });
   }
 
   /**

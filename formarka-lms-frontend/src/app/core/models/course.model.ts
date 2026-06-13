@@ -1,6 +1,7 @@
 export interface QuizOption {
   id: string | number;
   text: string;
+  isCorrect?: boolean;
 }
 
 export interface QuizQuestion {
@@ -63,17 +64,32 @@ export interface StudentProgress {
   completedDate?: string;
 }
 
+export interface CourseObjective {
+  id?: string | number;
+  text: string;
+}
+
+export interface CourseFeature {
+  id?: string | number;
+  icon: string;
+  text: string;
+}
+
 export interface Course {
   id: string;
   title: string;
   description: string;
+  longDescription?: string;
   thumbnailUrl: string;
   category: string;
   level: 'básico' | 'intermedio' | 'avanzado';
   instructorName?: string;
   instructorId?: string;
   totalHours: number;
+  isFree: boolean;
   modules?: Module[];
+  objectives?: string[];
+  features?: CourseFeature[];
   enrolledStudents?: StudentProgress[];
   isEnrolled?: boolean;
   lastVisitedLessonId?: string | number;

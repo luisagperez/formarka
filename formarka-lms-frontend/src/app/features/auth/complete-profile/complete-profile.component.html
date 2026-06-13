@@ -15,9 +15,15 @@
 
       <div class="form-group">
         <label>¿Cuál es tu rol?</label>
-        <select formControlName="role" class="form-select">
+        <select 
+          formControlName="role" 
+          class="form-select"
+          [class.input-error]="profileForm.get('role')?.invalid && (profileForm.get('role')?.touched || profileForm.dirty)">
           <option *ngFor="let r of roles" [value]="r.value">{{ r.label }}</option>
         </select>
+        <span class="error-text" *ngIf="profileForm.get('role')?.invalid && (profileForm.get('role')?.touched || profileForm.dirty)">
+          El rol es requerido
+        </span>
       </div>
 
       <app-form-field
@@ -35,7 +41,7 @@
 
       <app-button 
         type="submit" 
-        [loading]="isLoading" 
+        [loading]="isLoading"
         [disabled]="profileForm.invalid">
         Finalizar Registro
       </app-button>

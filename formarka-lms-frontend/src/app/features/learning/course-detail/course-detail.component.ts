@@ -22,7 +22,7 @@ import { ButtonComponent } from '../../../shared/components/button/button.compon
             <h1 class="hero-title">{{ course.title }}</h1>
             <div class="description-container" [class.expanded]="isDescriptionExpanded">
               <p class="description">{{ course.description }}</p>
-              <button class="read-more-btn" (click)="isDescriptionExpanded = !isDescriptionExpanded">
+              <button class="read-more-btn" (click)="isDescriptionExpanded = !isDescriptionExpanded" *ngIf="course.description.length > 150">
                 {{ isDescriptionExpanded ? 'Leer menos' : 'Leer descripción completa' }}
               </button>
             </div>
@@ -39,12 +39,24 @@ import { ButtonComponent } from '../../../shared/components/button/button.compon
             </div>
 
             <div class="actions">
-              <app-button (onClick)="handleCourseAction()" [loading]="isEnrolling">
-                {{ isEnrolled ? 'Continuar tu formación' : 'Empieza tu transformación' }}
-              </app-button>
+              <ng-container *ngIf="isEnrolled; else notEnrolled">
+                <app-button (onClick)="handleCourseAction()">
+                  Continuar tu formación
+                </app-button>
+              </ng-container>
+              <ng-template #notEnrolled>
+                <app-button *ngIf="course.isFree" (onClick)="enroll()" [loading]="isEnrolling">
+                  Inscribirme gratis
+                </app-button>
+                <div class="premium-lock-notice" *ngIf="!course.isFree">
+                  <span class="lock-icon">🔒</span>
+                  <span>Este es un curso <strong>Premium</strong>. Contacta con administración para inscribirte.</span>
+                </div>
+              </ng-template>
+              
               <div class="price-badge glass" *ngIf="!isEnrolled">
-                <span class="icon">✨</span>
-                Acceso Premium
+                <span class="icon">{{ course.isFree ? '🎁' : '✨' }}</span>
+                {{ course.isFree ? 'Gratuito' : 'Acceso Premium' }}
               </div>
               <div class="progress-info" *ngIf="isEnrolled">
                 <span class="label">Tu progreso:</span>
@@ -66,26 +78,14 @@ import { ButtonComponent } from '../../../shared/components/button/button.compon
         <div class="main-info">
           <div class="info-card glass">
             <h2>Acerca de este curso</h2>
-            <p>En este curso aprenderás paso a paso cómo potenciar tu marca personal o comercial. Hemos diseñado este contenido pensando en emprendedores que buscan resultados profesionales con herramientas accesibles y con criterio de diseño real.</p>
+            <p>{{ course.longDescription || 'En este curso aprenderás paso a paso cómo potenciar tu marca personal o comercial. Hemos diseñado este contenido pensando en emprendedores que buscan resultados profesionales con herramientas accesibles y con criterio de diseño real.' }}</p>
             
-            <div class="learning-points">
+            <div class="learning-points" *ngIf="course.objectives && course.objectives.length > 0">
               <h3>Lo que dominarás</h3>
               <div class="points-grid">
-                <div class="point">
+                <div class="point" *ngFor="let obj of course.objectives">
                   <span class="check">✔</span>
-                  Conceptos fundamentales de diseño y comunicación.
-                </div>
-                <div class="point">
-                  <span class="check">✔</span>
-                  Cómo aplicar la psicología del color a tu identidad.
-                </div>
-                <div class="point">
-                  <span class="check">✔</span>
-                  Estrategias prácticas para redes sociales.
-                </div>
-                <div class="point">
-                  <span class="check">✔</span>
-                  Optimización de recursos visuales de alto impacto.
+                  {{ obj }}
                 </div>
               </div>
             </div>
@@ -132,18 +132,26 @@ import { ButtonComponent } from '../../../shared/components/button/button.compon
             <p>Acceso ilimitado a las actualizaciones y soporte directo de nuestra comunidad de expertos.</p>
             <div class="divider"></div>
             <div class="features">
-              <div class="feature">
-                <span class="feat-icon">🌐</span>
-                <span>100% Online y a tu ritmo</span>
-              </div>
-              <div class="feature">
-                <span class="feat-icon">📜</span>
-                <span>Certificado de excelencia</span>
-              </div>
-              <div class="feature">
-                <span class="feat-icon">📥</span>
-                <span>Recursos y plantillas Premium</span>
-              </div>
+              <ng-container *ngIf="course.features && course.features.length > 0; else defaultFeatures">
+                <div class="feature" *ngFor="let feat of course.features">
+                  <span class="feat-icon">{{ feat.icon }}</span>
+                  <span>{{ feat.text }}</span>
+                </div>
+              </ng-container>
+              <ng-template #defaultFeatures>
+                <div class="feature">
+                  <span class="feat-icon">🌐</span>
+                  <span>100% Online y a tu ritmo</span>
+                </div>
+                <div class="feature">
+                  <span class="feat-icon">📜</span>
+                  <span>Certificado de excelencia</span>
+                </div>
+                <div class="feature">
+                  <span class="feat-icon">📥</span>
+                  <span>Recursos y plantillas Premium</span>
+                </div>
+              </ng-template>
             </div>
             <app-button variant="outline" class="full-width" style="margin-top: 30px">
               Solicitar información
@@ -212,6 +220,20 @@ import { ButtonComponent } from '../../../shared/components/button/button.compon
     .meta-item .value { font-weight: 700; font-size: 1.1rem; }
 
     .actions { display: flex; align-items: center; gap: 20px; }
+    
+    .premium-lock-notice {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 12px 20px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.95rem;
+      color: var(--formarka-white);
+      backdrop-filter: blur(10px);
+    }
+    .lock-icon { font-size: 1.2rem; }
 
     @media (max-width: 576px) {
       .actions { flex-direction: column; align-items: stretch; }
@@ -322,7 +344,7 @@ export class CourseDetailComponent implements OnInit {
       this.courseService.getCourse(id).subscribe(course => {
         this.course = course;
         if (course) {
-          this.isEnrolled = course.isEnrolled || this.courseService.isEnrolled(course.id);
+          this.isEnrolled = course.isEnrolled || false;
           this.progress = this.courseService.getCourseProgress(course.id);
           // By default, only first module open
           if (this.course?.modules && this.course.modules.length > 0) {
@@ -340,13 +362,11 @@ export class CourseDetailComponent implements OnInit {
   handleCourseAction(): void {
     if (this.isEnrolled) {
       this.router.navigate(['/learning', this.course?.id]);
-    } else {
-      this.enroll();
     }
   }
 
   enroll(): void {
-    if (!this.course) return;
+    if (!this.course || !this.course.isFree) return;
     this.isEnrolling = true;
     this.courseService.enroll(this.course.id).subscribe({
       next: () => {

@@ -54,7 +54,7 @@ import { ButtonComponent } from '../../../shared/components/button/button.compon
               <td>
                 <div class="instructor-cell">
                   <span class="instructor-name">{{ course.instructorName || 'Sin asignar' }}</span>
-                  <button *ngIf="userRole === 'admin'" class="assign-btn" (click)="assignTeacher(course)">Reasignar</button>
+                  
                 </div>
               </td>
               <td>

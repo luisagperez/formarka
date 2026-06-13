@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormArray, FormControl } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { forkJoin, of } from 'rxjs';
 import { CourseService } from '../../../core/services/course.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { Course, Resource } from '../../../core/models/course.model';
@@ -54,27 +55,46 @@ import { FormFieldComponent } from '../../../shared/components/form-field/form-f
                 [control]="getControl('totalHours')"
                 placeholder="20">
               </app-form-field>
+
+              <div class="form-field" style="padding-top: 35px;">
+                <label class="flex-align" style="flex-direction: row; gap: 10px; cursor: pointer;">
+                  <input type="checkbox" formControlName="isFree" style="width: 20px; height: 20px;">
+                  <span class="label" style="margin-bottom: 0;">¿Es un curso gratuito?</span>
+                </label>
+              </div>
             </div>
 
             <div class="form-row">
               <div class="form-field">
                 <label class="label">Nivel de Dificultad</label>
                 <div class="select-wrapper">
-                  <select formControlName="level" class="select-input">
+                  <select 
+                    formControlName="level" 
+                    class="select-input"
+                    [class.input-error]="getControl('level').invalid && (getControl('level').touched || courseForm.dirty)">
                     <option value="básico">Básico</option>
                     <option value="intermedio">Intermedio</option>
                     <option value="avanzado">Avanzado</option>
                   </select>
                 </div>
+                <span class="error-text" *ngIf="getControl('level').invalid && (getControl('level').touched || courseForm.dirty)">
+                  El nivel es requerido
+                </span>
               </div>
               <div class="form-field">
                 <label class="label">Instructor Responsable</label>
                 <div class="select-wrapper">
-                  <select formControlName="instructorId" class="select-input">
+                  <select 
+                    formControlName="instructorId" 
+                    class="select-input"
+                    [class.input-error]="getControl('instructorId').invalid && (getControl('instructorId').touched || courseForm.dirty)">
                     <option value="" disabled>Seleccione un instructor</option>
                     <option *ngFor="let inst of instructors" [value]="inst.id">{{ inst.name }} ({{ inst.specialty }})</option>
                   </select>
                 </div>
+                <span class="error-text" *ngIf="getControl('instructorId').invalid && (getControl('instructorId').touched || courseForm.dirty)">
+                  El instructor es requerido
+                </span>
               </div>
             </div>
 
@@ -84,8 +104,12 @@ import { FormFieldComponent } from '../../../shared/components/form-field/form-f
                 formControlName="description" 
                 class="textarea-input" 
                 rows="5"
-                placeholder="¿Qué lograrán tus alumnos con este curso?">
+                placeholder="¿Qué lograrán tus alumnos con este curso?"
+                [class.input-error]="getControl('description').invalid && (getControl('description').touched || courseForm.dirty)">
               </textarea>
+              <span class="error-text" *ngIf="getControl('description').invalid && (getControl('description').touched || courseForm.dirty)">
+                La descripción es requerida
+              </span>
             </div>
 
             <app-form-field 
@@ -95,11 +119,60 @@ import { FormFieldComponent } from '../../../shared/components/form-field/form-f
             </app-form-field>
           </div>
 
+          <!-- Contenido Detallado -->
+          <div class="form-card glass animate-up" style="animation-delay: 0.15s">
+            <div class="card-header">
+              <span class="step-num">2</span>
+              <h3>Contenido de Venta y Objetivos</h3>
+            </div>
+
+            <div class="form-field">
+              <label class="label">"Acerca de este curso" (Descripción Larga)</label>
+              <textarea 
+                formControlName="longDescription" 
+                class="textarea-input" 
+                rows="6"
+                placeholder="Describe a fondo qué aprenderán y por qué es valioso este curso..."
+                [class.input-error]="getControl('longDescription').invalid && (getControl('longDescription').touched || courseForm.dirty)">
+              </textarea>
+              <span class="error-text" *ngIf="getControl('longDescription').invalid && (getControl('longDescription').touched || courseForm.dirty)">
+                La descripción larga es requerida
+              </span>
+            </div>
+
+            <div class="objectives-section">
+              <div class="section-header flex-between" style="margin-bottom: 15px">
+                <label class="label">Lo que dominarán (Objetivos)</label>
+                <button type="button" class="small-add-btn" (click)="addObjective()">+ Añadir Objetivo</button>
+              </div>
+              <div formArrayName="objectives" class="dynamic-list">
+                <div *ngFor="let obj of objectives.controls; let i=index" [formGroupName]="i" class="resource-row flex-column-mobile">
+                  <input type="text" formControlName="text" placeholder="Ej. Conceptos fundamentales de diseño" class="res-input" [class.input-error]="obj.get('text')?.invalid && obj.get('text')?.touched">
+                  <button type="button" class="res-remove" (click)="removeObjective(i)">×</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="features-section" style="margin-top: 30px">
+              <div class="section-header flex-between" style="margin-bottom: 15px">
+                <label class="label">Características / Garantías (Sidebar)</label>
+                <button type="button" class="small-add-btn" (click)="addFeature()">+ Añadir Característica</button>
+              </div>
+              <div formArrayName="features" class="dynamic-list">
+                <div *ngFor="let feat of features.controls; let i=index" [formGroupName]="i" class="resource-row flex-column-mobile">
+                  <input type="text" formControlName="icon" placeholder="Icono (Emoji)" class="res-input" style="flex: 0 0 80px">
+                  <input type="text" formControlName="text" placeholder="Ej. 100% Online y a tu ritmo" class="res-input" style="flex: 1">
+                  <button type="button" class="res-remove" (click)="removeFeature(i)">×</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Estructura de Módulos y Lecciones -->
           <div class="form-card glass animate-up" style="animation-delay: 0.2s">
             <div class="card-header flex-between flex-column-mobile">
               <div class="flex-align">
-                <span class="step-num">2</span>
+                <span class="step-num">3</span>
                 <h3>Plan de Estudios y Recursos</h3>
               </div>
               <button type="button" class="add-btn full-width-mobile" (click)="addModule()">
@@ -111,14 +184,20 @@ import { FormFieldComponent } from '../../../shared/components/form-field/form-f
               <div *ngFor="let module of modules.controls; let i=index" [formGroupName]="i" class="module-item animate-up">
                 <div class="module-main-row flex-column-mobile">
                   <div class="module-drag-handle hide-mobile">⋮⋮</div>
-                  <input type="text" formControlName="title" placeholder="Título del Módulo" class="module-title-input">
+                  <div style="flex: 1">
+                    <input type="text" formControlName="title" placeholder="Título del Módulo" class="module-title-input" [class.input-error]="module.get('title')?.invalid && module.get('title')?.touched">
+                    <span class="error-text" *ngIf="module.get('title')?.invalid && module.get('title')?.touched">Título requerido</span>
+                  </div>
                   <button type="button" class="delete-icon-btn" (click)="removeModule(i)" title="Eliminar Módulo">🗑️</button>
                 </div>
 
                 <div formArrayName="lessons" class="lessons-list no-margin-mobile">
                   <div *ngFor="let lesson of getLessons(i).controls; let j=index" [formGroupName]="j" class="lesson-card">
                     <div class="lesson-header flex-column-mobile">
-                      <input type="text" formControlName="title" placeholder="Título de la lección" class="lesson-title-input">
+                      <div style="flex: 1">
+                        <input type="text" formControlName="title" placeholder="Título de la lección" class="lesson-title-input" [class.input-error]="lesson.get('title')?.invalid && lesson.get('title')?.touched">
+                        <span class="error-text" *ngIf="lesson.get('title')?.invalid && lesson.get('title')?.touched">Título requerido</span>
+                      </div>
                       <div class="lesson-type-tag">
                         <select formControlName="type">
                           <option value="video">📹 Video</option>
@@ -338,16 +417,41 @@ export class AdminCourseEditComponent implements OnInit {
     this.courseForm = this.fb.group({
       title: ['', [Validators.required, Validators.minLength(5)]],
       description: ['', [Validators.required]],
+      longDescription: ['', [Validators.required]],
       category: ['', [Validators.required]],
       level: ['básico', [Validators.required]],
       thumbnailUrl: ['', [Validators.required]],
       instructorId: ['', [Validators.required]],
       totalHours: [20, [Validators.required, Validators.min(1)]],
+      isFree: [false],
+      objectives: this.fb.array([]),
+      features: this.fb.array([]),
       modules: this.fb.array([])
     });
   }
 
   get modules() { return this.courseForm.get('modules') as FormArray; }
+  get objectives() { return this.courseForm.get('objectives') as FormArray; }
+  get features() { return this.courseForm.get('features') as FormArray; }
+
+  addObjective(text = '') {
+    this.objectives.push(this.fb.group({
+      id: [null],
+      text: [text, Validators.required]
+    }));
+  }
+
+  removeObjective(index: number) { this.objectives.removeAt(index); }
+
+  addFeature(icon = '✨', text = '') {
+    this.features.push(this.fb.group({
+      id: [null],
+      icon: [icon, Validators.required],
+      text: [text, Validators.required]
+    }));
+  }
+
+  removeFeature(index: number) { this.features.removeAt(index); }
 
   getLessons(moduleIndex: number) { return this.modules.at(moduleIndex).get('lessons') as FormArray; }
 
@@ -455,90 +559,108 @@ export class AdminCourseEditComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // Load instructors first
-    this.authService.getInstructors().subscribe((list: any[]) => this.instructors = list);
-
+    const instructors$ = this.authService.getInstructors();
     const id = this.route.snapshot.paramMap.get('id');
+
     if (id && id !== 'new') {
       this.isEditMode = true;
       this.courseId = id;
-      this.courseService.getCourse(id).subscribe(course => {
-        if (course) {
-          this.courseForm.patchValue({
-            title: course.title,
-            description: course.description,
-            category: course.category,
-            level: course.level,
-            thumbnailUrl: course.thumbnailUrl,
-            instructorId: course.instructorId,
-            totalHours: course.totalHours
-          });
-          
-          if (course.modules) {
-            this.modules.clear();
-            course.modules.forEach((m, mi) => {
-              const moduleGroup = this.fb.group({
-                id: [m.id],
-                title: [m.title, Validators.required],
-                lessons: this.fb.array(m.lessons.map((l, li) => {
-                  const lGroup = this.fb.group({
-                    id: [l.id],
-                    title: [l.title, Validators.required],
-                    type: [l.type, Validators.required],
-                    contentUrl: [l.contentUrl || ''],
-                    duration: [l.duration || ''],
-                    resources: this.fb.array((l.resources || []).map(r => this.fb.group({
-                      id: [r.id],
-                      title: [r.title],
-                      url: [r.url],
-                      type: [r.type]
-                    }))),
-                    quiz: this.fb.group({
-                      id: [null],
-                      title: [''],
-                      description: [''],
-                      passingScore: [70],
-                      questions: this.fb.array([])
-                    })
-                  });
+      const course$ = this.courseService.getCourse(id);
 
-                  if (l.type === 'quiz') {
-                    this.courseService.getQuizByLesson(l.id).subscribe(quiz => {
-                      if (quiz) {
-                        const qGroup = lGroup.get('quiz') as FormGroup;
-                        qGroup.patchValue({
-                          id: quiz.id,
-                          title: quiz.title,
-                          description: quiz.description,
-                          passingScore: quiz.passingScore
-                        });
-                        const questionsArray = qGroup.get('questions') as FormArray;
-                        questionsArray.clear();
-                        quiz.questions.forEach((q: any) => {
-                          questionsArray.push(this.fb.group({
-                            id: [q.id],
-                            text: [q.text, Validators.required],
-                            type: [q.questionType || 'multiplechoice'],
-                            points: [q.points || 10],
-                            options: this.fb.array(q.options.map((o: any) => this.fb.group({
-                              id: [o.id],
-                              text: [o.text, Validators.required],
-                              isCorrect: [o.isCorrect]
-                            })))
-                          }));
-                        });
-                      }
-                    });
-                  }
-                  return lGroup;
-                }))
-              });
-              this.modules.push(moduleGroup);
+      forkJoin([instructors$, course$]).subscribe({
+        next: ([instructors, course]) => {
+          this.instructors = instructors;
+          if (course) {
+            this.courseForm.patchValue({
+              title: course.title,
+              description: course.description,
+              longDescription: course.longDescription,
+              category: course.category,
+              level: course.level,
+              thumbnailUrl: course.thumbnailUrl,
+              instructorId: course.instructorId,
+              totalHours: course.totalHours,
+              isFree: course.isFree
             });
+
+            if (course.objectives) {
+              this.objectives.clear();
+              course.objectives.forEach(obj => this.addObjective(obj));
+            }
+
+            if (course.features) {
+              this.features.clear();
+              course.features.forEach(feat => this.addFeature(feat.icon, feat.text));
+            }
+            
+            if (course.modules) {
+              this.modules.clear();
+              course.modules.forEach((m) => {
+                const moduleGroup = this.fb.group({
+                  id: [m.id],
+                  title: [m.title, Validators.required],
+                  lessons: this.fb.array(m.lessons.map((l) => {
+                    const lGroup = this.fb.group({
+                      id: [l.id],
+                      title: [l.title, Validators.required],
+                      type: [l.type, Validators.required],
+                      contentUrl: [l.contentUrl || ''],
+                      duration: [l.duration || ''],
+                      resources: this.fb.array((l.resources || []).map(r => this.fb.group({
+                        id: [r.id],
+                        title: [r.title],
+                        url: [r.url],
+                        type: [r.type]
+                      }))),
+                      quiz: this.fb.group({
+                        id: [null],
+                        title: [''],
+                        description: [''],
+                        passingScore: [70],
+                        questions: this.fb.array([])
+                      })
+                    });
+
+                    if (l.type === 'quiz') {
+                      this.courseService.getQuizByLesson(l.id).subscribe(quiz => {
+                        if (quiz) {
+                          const qGroup = lGroup.get('quiz') as FormGroup;
+                          qGroup.patchValue({
+                            id: quiz.id,
+                            title: quiz.title,
+                            description: quiz.description,
+                            passingScore: quiz.passingScore
+                          });
+                          const questionsArray = qGroup.get('questions') as FormArray;
+                          questionsArray.clear();
+                          quiz.questions.forEach((q: any) => {
+                            questionsArray.push(this.fb.group({
+                              id: [q.id],
+                              text: [q.text, Validators.required],
+                              type: [q.type || 'multiplechoice'],
+                              points: [q.points || 10],
+                              options: this.fb.array(q.options.map((o: any) => this.fb.group({
+                                id: [o.id],
+                                text: [o.text, Validators.required],
+                                isCorrect: [o.isCorrect]
+                              })))
+                            }));
+                          });
+                        }
+                      });
+                    }
+                    return lGroup;
+                  }))
+                });
+                this.modules.push(moduleGroup);
+              });
+            }
           }
-        }
+        },
+        error: (err) => console.error('Error loading course data:', err)
       });
     } else {
+      instructors$.subscribe(list => this.instructors = list);
       this.addModule();
     }
   }
@@ -554,7 +676,11 @@ export class AdminCourseEditComponent implements OnInit {
   }
 
   saveCourse(): void {
-    if (this.courseForm.invalid) return;
+    if (this.courseForm.invalid) {
+      this.courseForm.markAllAsTouched();
+      // Optional: scroll to the first error
+      return;
+    }
     this.isSaving = true;
     
     // Process form value to ensure correct types and include order

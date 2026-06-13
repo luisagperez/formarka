@@ -62,10 +62,15 @@ export class LoginComponent {
       const { email, password } = this.loginForm.value;
 
       this.authService.login(email, password).subscribe({
-        next: (user) => {
-          this.isLoading = false;
-          // Redirect to the courses page
-          this.router.navigate(['/courses']);
+        next: async (user) => {
+          try {
+            await this.authService.checkProfileAndRedirect(user.id);
+            this.isLoading = false;
+          } catch (err) {
+            this.isLoading = false;
+            this.errorMessage = 'Ocurrió un error al verificar tu perfil. Por favor, intenta de nuevo más tarde.';
+            this.showErrorModal = true;
+          }
         },
         error: (err) => {
           this.isLoading = false;

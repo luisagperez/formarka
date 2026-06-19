@@ -1,5 +1,26 @@
 {
   "navigationFallback": {
-    "rewrite": "/index.html"
+    "rewrite": "/index.html",
+    "exclude": [
+      "/*.css",
+      "/*.js",
+      "/*.json",
+      "/*.png",
+      "/*.jpg",
+      "/*.ico",
+      "/*.svg",
+      "/*.woff",
+      "/*.woff2"
+    ]
+  },
+  "globalHeaders": {
+    "content-security-policy": "default-src 'self' https: http: data: blob: 'unsafe-inline' 'unsafe-eval'; frame-src 'self' https://www.youtube.com https://youtube.com https://www.youtube-nocookie.com https://player.vimeo.com; media-src 'self' https: blob:; img-src 'self' https: http: data: blob:; connect-src 'self' https: http: wss: ws:;",
+    "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "strict-origin-when-cross-origin"
+  },
+  "mimeTypes": {
+    ".json": "application/json",
+    ".woff": "application/font-woff",
+    ".woff2": "application/font-woff2"
   }
 }

@@ -168,9 +168,12 @@
               <div class="rich-text">
                 <p>{{ currentLesson?.description || 'Esta lección no tiene una descripción detallada.' }}</p>
               </div>
+            </div>
 
-              <!-- Resources -->
-              <div class="resources-grid" *ngIf="currentLesson?.resources?.length">
+            <!-- Resources (Always Visible) -->
+            <div class="resources-section" *ngIf="currentLesson?.resources?.length" style="padding: 24px; border-top: 1px solid #f0f0f0;">
+              <h3 style="margin-top: 0; margin-bottom: 16px; font-size: 1.1rem; color: var(--brand-purple-deep);">Recursos Descargables</h3>
+              <div class="resources-grid" style="margin-top: 0;">
                 <a *ngFor="let res of currentLesson?.resources" [href]="res.url" target="_blank" class="res-card">
                   <span class="res-icon">📄</span>
                   <div class="res-text">

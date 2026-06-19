@@ -190,6 +190,30 @@
         </section>
       </div>
 
+      <!-- Certificate Banner (100% completion) -->
+      <div class="certificate-banner glass animate-fade" *ngIf="progress === 100">
+        <div class="cert-confetti">🎓</div>
+        <div class="cert-content">
+          <h2 class="cert-title">¡Felicitaciones, {{ userName }}!</h2>
+          <p class="cert-subtitle">Has completado el curso. Si todos tus entregables fueron aprobados, ya puedes obtener tu certificado.</p>
+          <div class="cert-actions">
+            <button
+              id="btn-download-certificate"
+              class="cert-btn"
+              (click)="downloadCertificate()"
+              [disabled]="isCertificateLoading"
+            >
+              <span *ngIf="!isCertificateLoading">🏆 Obtener mi Certificado</span>
+              <span *ngIf="isCertificateLoading" class="loading-dots">Generando<span>.</span><span>.</span><span>.</span></span>
+            </button>
+          </div>
+          <div class="cert-error" *ngIf="certificateError">
+            <span class="cert-error-icon">⚠️</span>
+            <span>{{ certificateError }}</span>
+          </div>
+        </div>
+      </div>
+
       <!-- Auto-progress Notification -->
       <div class="auto-toast glass animate-fade" *ngIf="showAutoProgressToast">
         <span class="toast-icon">✨</span>

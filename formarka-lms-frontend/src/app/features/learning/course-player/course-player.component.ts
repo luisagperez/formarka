@@ -31,6 +31,10 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
   showAutoProgressToast = false;
   completionProgress = 0;
   private completionInterval: any;
+
+  // Certificate state
+  isCertificateLoading = false;
+  certificateError: string | null = null;
   
   constructor(
     public courseService: CourseService,
@@ -171,16 +175,21 @@ export class CoursePlayerComponent implements OnInit, OnDestroy {
   }
 
   downloadCertificate() {
-    if (!this.course) return;
+    if (!this.course || this.isCertificateLoading) return;
+
+    this.isCertificateLoading = true;
+    this.certificateError = null;
 
     this.courseService.getCertificate(this.course.id).subscribe({
       next: (cert) => {
+        this.isCertificateLoading = false;
         this.generateCertificatePdf(cert);
       },
       error: (err) => {
-        console.error('Error fetching certificate:', err);
-        // Fallback for UI if needed, though the API should handle completion check
-        alert('Asegúrate de haber completado el 100% del curso para generar tu certificado.');
+        this.isCertificateLoading = false;
+        const apiMessage = err?.error?.message || err?.error?.Message;
+        this.certificateError = apiMessage
+          || 'No puedes obtener el certificado todavía. Completa el 100% del curso y asegúrate de que todos tus entregables estén revisados y aprobados.';
       }
     });
   }

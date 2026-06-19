@@ -282,3 +282,106 @@
 
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 .animate-fade { animation: fadeIn 0.4s ease; }
+
+/* 6. Text and File Lesson Styles */
+.text-lesson-container, .file-lesson-container {
+  margin-bottom: 40px;
+}
+
+.text-lesson-card, .file-lesson-card {
+  background: white;
+  border-radius: 28px;
+  padding: 40px;
+  border: 1px solid rgba(78, 7, 103, 0.05);
+  box-shadow: 0 10px 40px rgba(78, 7, 103, 0.03);
+}
+
+.text-content-wrapper {
+  font-size: 1.15rem;
+  line-height: 1.8;
+  color: var(--brand-black);
+  white-space: pre-wrap;
+  font-family: var(--font-main);
+  margin-bottom: 30px;
+}
+
+.text-actions, .file-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #f3eff6;
+}
+
+.complete-lesson-btn, .download-button {
+  background: linear-gradient(135deg, var(--brand-purple-deep), var(--brand-purple-light));
+  color: white;
+  border: none;
+  padding: 14px 32px;
+  border-radius: 100px;
+  font-weight: 800;
+  font-size: 1rem;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(78, 7, 103, 0.15);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
+}
+
+.complete-lesson-btn:hover, .download-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(78, 7, 103, 0.25);
+  filter: brightness(1.05);
+}
+
+.complete-lesson-btn:active, .download-button:active {
+  transform: translateY(0);
+}
+
+.completed-badge-large {
+  font-weight: 800;
+  color: var(--brand-green-vibrant);
+  font-size: 1.1rem;
+  padding: 10px 24px;
+  background: #e6ffef;
+  border-radius: 100px;
+}
+
+.file-lesson-card {
+  text-align: center;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.file-illustration {
+  font-size: 4.5rem;
+  margin-bottom: 20px;
+  animation: bounce 2s infinite;
+}
+
+.file-lesson-card h2 {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--brand-black);
+  margin-bottom: 12px;
+}
+
+.file-desc {
+  color: var(--formarka-text-muted);
+  line-height: 1.6;
+  margin-bottom: 30px;
+}
+
+.completed-info-text {
+  font-weight: 700;
+  color: #15803d;
+  font-size: 0.9rem;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}

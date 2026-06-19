@@ -41,7 +41,8 @@ export interface Lesson {
   id: string | number;
   title: string;
   type: 'video' | 'text' | 'quiz' | 'file' | 'deliverable';
-  contentUrl?: string; // YouTube URL for videos
+  contentUrl?: string; // YouTube URL for videos or text/file content
+  description?: string;
   duration?: string;
   isCompleted?: boolean;
   quiz?: Quiz; // Optional quiz data

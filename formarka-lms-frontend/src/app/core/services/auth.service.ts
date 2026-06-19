@@ -4,7 +4,7 @@ import { createClient, SupabaseClient, User as SupabaseUser } from '@supabase/su
 import { environment } from '../../../environments/environment';
 import { User } from '../models/user.model';
 import { Observable, from, of, throwError } from 'rxjs';
-import { catchError, map, tap } from 'rxjs/operators';
+import { catchError, map, tap, switchMap } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
 
 /**
@@ -219,6 +219,15 @@ export class AuthService {
           });
         }
       }),
+      switchMap(response => from(this.supabase.auth.refreshSession()).pipe(
+        map(({ data, error }) => {
+          if (error) throw error;
+          if (data.session?.user) {
+            this.updateCurrentUser(data.session.user);
+          }
+          return response;
+        })
+      )),
       catchError(err => {
         console.error('Error completing profile:', err);
         return throwError(() => new Error(err.error?.message || 'Error al completar el perfil.'));

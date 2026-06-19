@@ -124,90 +124,90 @@ import { forkJoin } from 'rxjs';
           </table>
         </div>
       </div>
+    </div>
 
-      <!-- Enrollment Modal -->
-      <div class="modal-overlay" *ngIf="showEnrollModal">
-        <div class="modal-content glass animate-up enroll-modal">
-          <div class="modal-header">
-            <div>
-              <h3>Inscribir Estudiante</h3>
-              <p class="modal-subtitle">Selecciona un usuario de la plataforma para asignarlo a este curso.</p>
-            </div>
-            <button class="close-btn" (click)="showEnrollModal = false">×</button>
+    <!-- Enrollment Modal -->
+    <div class="modal-overlay" *ngIf="showEnrollModal">
+      <div class="modal-content glass animate-up enroll-modal">
+        <div class="modal-header">
+          <div>
+            <h3>Inscribir Estudiante</h3>
+            <p class="modal-subtitle">Selecciona un usuario de la plataforma para asignarlo a este curso.</p>
           </div>
-          
-          <div class="enroll-search">
-            <input 
-              type="text" 
-              [(ngModel)]="userSearchTerm" 
-              placeholder="Buscar por nombre o email..."
-              class="search-input modal-search"
-            />
-          </div>
+          <button class="close-btn" (click)="showEnrollModal = false">×</button>
+        </div>
+        
+        <div class="enroll-search">
+          <input 
+            type="text" 
+            [(ngModel)]="userSearchTerm" 
+            placeholder="Buscar por nombre o email..."
+            class="search-input modal-search"
+          />
+        </div>
 
-          <div class="available-users-list">
-            <div *ngIf="isSearchingUsers" class="loading-users">Buscando usuarios...</div>
-            <div *ngFor="let user of availableUsers" class="user-pick-item animate-up">
-              <div class="user-cell">
-                <div class="user-avatar">{{ user.name.charAt(0) }}</div>
-                <div class="user-info">
-                  <span class="user-name">{{ user.name }}</span>
-                  <span class="user-email">{{ user.email }}</span>
-                </div>
+        <div class="available-users-list">
+          <div *ngIf="isSearchingUsers" class="loading-users">Buscando usuarios...</div>
+          <div *ngFor="let user of availableUsers" class="user-pick-item animate-up">
+            <div class="user-cell">
+              <div class="user-avatar">{{ user.name.charAt(0) }}</div>
+              <div class="user-info">
+                <span class="user-name">{{ user.name }}</span>
+                <span class="user-email">{{ user.email }}</span>
               </div>
-              <app-button size="small" (onClick)="confirmEnroll(user)" [loading]="enrollingUserId === user.id">
-                Inscribir
-              </app-button>
             </div>
-            <div *ngIf="availableUsers.length === 0 && !isSearchingUsers" class="empty-state small">
-              No hay más estudiantes disponibles para este curso.
-            </div>
+            <app-button size="small" (onClick)="confirmEnroll(user)" [loading]="enrollingUserId === user.id">
+              Inscribir
+            </app-button>
+          </div>
+          <div *ngIf="availableUsers.length === 0 && !isSearchingUsers" class="empty-state small">
+            No hay más estudiantes disponibles para este curso.
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- Deliverables Modal (Existing, improved styles) -->
-      <div class="modal-overlay" *ngIf="selectedStudent">
-        <div class="modal-content glass animate-up large-modal">
-          <div class="modal-header">
-            <div>
-              <h3>Entregables: {{ selectedStudent.studentName }}</h3>
-              <p class="modal-subtitle">Revisa y califica las tareas enviadas por el alumno.</p>
-            </div>
-            <button class="close-btn" (click)="selectedStudent = null">×</button>
+    <!-- Deliverables Modal (Existing, improved styles) -->
+    <div class="modal-overlay" *ngIf="selectedStudent">
+      <div class="modal-content glass animate-up large-modal">
+        <div class="modal-header">
+          <div>
+            <h3>Entregables: {{ selectedStudent.studentName }}</h3>
+            <p class="modal-subtitle">Revisa y califica las tareas enviadas por el alumno.</p>
           </div>
-          
-          <div class="deliverables-list">
-            <div *ngIf="isLoadingDeliverables" class="loading-users">Cargando trabajos...</div>
-            <div *ngFor="let del of deliverables" class="deliverable-card card animate-up">
-              <div class="del-info">
-                <div class="del-main">
-                  <h4>Lección #{{ del.lessonId }}</h4>
-                  <span class="del-status-tag" [class.graded]="del.status === 'graded'">{{ del.status === 'graded' ? 'CALIFICADO' : 'PENDIENTE' }}</span>
-                </div>
-                <span class="del-date">Enviado el {{ del.submissionDate | date:'mediumDate' }}</span>
-                <a [href]="del.contentUrl" target="_blank" class="file-link">
-                  <span class="icon">📄</span> Ver Documento / Enlace
-                </a>
+          <button class="close-btn" (click)="selectedStudent = null">×</button>
+        </div>
+        
+        <div class="deliverables-list">
+          <div *ngIf="isLoadingDeliverables" class="loading-users">Cargando trabajos...</div>
+          <div *ngFor="let del of deliverables" class="deliverable-card card animate-up">
+            <div class="del-info">
+              <div class="del-main">
+                <h4>Lección #{{ del.lessonId }}</h4>
+                <span class="del-status-tag" [class.graded]="del.status === 'graded'">{{ del.status === 'graded' ? 'CALIFICADO' : 'PENDIENTE' }}</span>
               </div>
-              
-              <div class="grading-panel">
-                <div class="grading-form">
-                  <div class="input-group">
-                    <label>Nota (0-100)</label>
-                    <input type="number" [(ngModel)]="gradeValue" class="grade-input" max="100" min="0">
-                  </div>
-                  <div class="input-group full">
-                    <label>Feedback para el alumno</label>
-                    <textarea [(ngModel)]="feedbackText" class="feedback-input" placeholder="Escribe tus comentarios aquí..."></textarea>
-                  </div>
+              <span class="del-date">Enviado el {{ del.submissionDate | date:'mediumDate' }}</span>
+              <a [href]="del.contentUrl" target="_blank" class="file-link">
+                <span class="icon">📄</span> Ver Documento / Enlace
+              </a>
+            </div>
+            
+            <div class="grading-panel">
+              <div class="grading-form">
+                <div class="input-group">
+                  <label>Nota (0-100)</label>
+                  <input type="number" [(ngModel)]="del.editGrade" class="grade-input" max="100" min="0">
                 </div>
-                <app-button (onClick)="submitGrade(del.id)" size="small" [loading]="isSavingGrade">Guardar y Notificar</app-button>
+                <div class="input-group full">
+                  <label>Feedback para el alumno</label>
+                  <textarea [(ngModel)]="del.editFeedback" class="feedback-input" placeholder="Escribe tus comentarios aquí..."></textarea>
+                </div>
               </div>
+              <app-button (onClick)="submitGrade(del)" size="small" [loading]="del.isSaving">Guardar y Notificar</app-button>
             </div>
-            <div *ngIf="!isLoadingDeliverables && deliverables.length === 0" class="empty-state">
-              <p>El alumno aún no ha realizado envíos.</p>
-            </div>
+          </div>
+          <div *ngIf="!isLoadingDeliverables && deliverables.length === 0" class="empty-state">
+            <p>El alumno aún no ha realizado envíos.</p>
           </div>
         </div>
       </div>
@@ -269,17 +269,36 @@ import { forkJoin } from 'rxjs';
     .icon-action-btn.delete:hover { border-color: #ef4444; background: #fef2f2; color: #ef4444; }
 
     /* Modals */
-    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 2000; }
     .enroll-modal { width: 500px; padding: 32px; border-radius: 32px; background: white; }
+    .large-modal { width: 700px; max-width: 95%; max-height: 85vh; display: flex; flex-direction: column; padding: 32px; border-radius: 32px; background: white; overflow: hidden; }
     .modal-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
     .modal-subtitle { color: #666; font-size: 0.9rem; margin-top: 4px; }
-    .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #ccc; transition: color 0.2s; }
-    .close-btn:hover { color: #333; }
+    .close-btn { 
+      background: rgba(0, 0, 0, 0.04); 
+      border: none; 
+      font-size: 1.25rem; 
+      cursor: pointer; 
+      color: #666; 
+      width: 36px; 
+      height: 36px; 
+      border-radius: 50%; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      transition: all 0.2s ease-in-out; 
+    }
+    .close-btn:hover { 
+      background: var(--brand-purple-light); 
+      color: white; 
+      transform: rotate(90deg); 
+    }
 
     .available-users-list { max-height: 400px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; padding-right: 8px; margin-top: 20px; }
     .user-pick-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-radius: 16px; border: 1px solid #f5f5f5; }
     .user-pick-item:hover { border-color: var(--brand-purple-light); background: #fdfbff; }
 
+    .deliverables-list { flex: 1; overflow-y: auto; padding-right: 8px; margin-top: 15px; }
     .deliverable-card { padding: 24px; border: 1px solid #eee; border-radius: 24px; margin-bottom: 24px; background: #fff; }
     .del-info { margin-bottom: 20px; }
     .del-main { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
@@ -302,8 +321,14 @@ import { forkJoin } from 'rxjs';
       .admin-header { flex-direction: column; align-items: flex-start; gap: 20px; }
       .header-actions { width: 100%; }
       .stats-grid { grid-template-columns: 1fr; }
-      .large-modal { width: 95%; padding: 20px; }
-      .grading-form { grid-template-columns: 1fr; }
+      .large-modal { width: 95%; max-height: 90vh; padding: 20px; border-radius: 24px; }
+      .enroll-modal { width: 95%; padding: 20px; border-radius: 24px; }
+      .modal-header { margin-bottom: 16px; }
+      .modal-header h3 { font-size: 1.2rem; }
+      .deliverable-card { padding: 16px; margin-bottom: 16px; border-radius: 16px; }
+      .grading-form { grid-template-columns: 1fr; gap: 12px; }
+      .grading-panel { padding-top: 15px; }
+      .feedback-input { min-height: 60px; }
     }
   `]
 })
@@ -327,10 +352,6 @@ export class AdminStudentsComponent implements OnInit {
   selectedStudent: StudentProgress | null = null;
   deliverables: any[] = [];
   isLoadingDeliverables = false;
-  isSavingGrade = false;
-  
-  gradeValue: number = 0;
-  feedbackText: string = '';
 
   get userRole() {
     return this.authService.currentUser()?.role || 'student';
@@ -429,7 +450,12 @@ export class AdminStudentsComponent implements OnInit {
     this.deliverables = [];
     this.courseService.getStudentDeliverables(this.courseId, student.studentId).subscribe({
       next: (d) => {
-        this.deliverables = d;
+        this.deliverables = d.map((del: any) => ({
+          ...del,
+          editGrade: del.grade || 0,
+          editFeedback: del.feedback || '',
+          isSaving: false
+        }));
         this.isLoadingDeliverables = false;
       },
       error: () => {
@@ -439,22 +465,23 @@ export class AdminStudentsComponent implements OnInit {
     });
   }
 
-  submitGrade(delId: string | number) {
+  submitGrade(del: any) {
     if (!this.selectedStudent) return;
-    this.isSavingGrade = true;
+    del.isSaving = true;
     
-    this.courseService.gradeDeliverable(delId, this.gradeValue, this.feedbackText).subscribe({
+    this.courseService.gradeDeliverable(del.id, del.editGrade, del.editFeedback).subscribe({
       next: (success) => {
-        this.isSavingGrade = false;
+        del.isSaving = false;
         if (success) {
           alert('Calificación guardada correctamente.');
-          this.viewDeliverables(this.selectedStudent!); // Refresh list
-          this.gradeValue = 0;
-          this.feedbackText = '';
+          del.status = 'graded';
+          del.grade = del.editGrade;
+          del.feedback = del.editFeedback;
+          this.refreshData(); // Refresh student list (average grades) in parent view
         }
       },
       error: () => {
-        this.isSavingGrade = false;
+        del.isSaving = false;
         alert('Error al guardar calificación.');
       }
     });

@@ -103,6 +103,49 @@
           <app-deliverable [lessonId]="currentLesson!.id" (onComplete)="markAsCompleted()"></app-deliverable>
         </section>
 
+        <!-- Text Lesson Section -->
+        <section class="text-lesson-container" *ngIf="currentLesson?.type === 'text'">
+          <div class="text-lesson-card glass shadow-premium">
+            <div class="text-content-wrapper">
+              {{ currentLesson?.contentUrl }}
+            </div>
+            <div class="text-actions">
+              <button 
+                class="complete-lesson-btn" 
+                *ngIf="!currentLesson?.isCompleted" 
+                (click)="markAsCompleted()"
+              >
+                ✓ Marcar como Completada
+              </button>
+              <div class="completed-badge-large" *ngIf="currentLesson?.isCompleted">
+                ✨ Lección Completada
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- File Lesson Section -->
+        <section class="file-lesson-container" *ngIf="currentLesson?.type === 'file'">
+          <div class="file-lesson-card glass shadow-premium">
+            <div class="file-illustration">📁</div>
+            <h2>Recurso de descarga disponible</h2>
+            <p class="file-desc">Esta lección contiene un archivo adjunto que puedes descargar para continuar con tu aprendizaje práctico.</p>
+            <div class="file-actions">
+              <a 
+                [href]="currentLesson?.contentUrl" 
+                target="_blank" 
+                class="download-button" 
+                (click)="markAsCompleted()"
+              >
+                Descargar Archivo / Recurso
+              </a>
+              <div class="completed-info-text" *ngIf="currentLesson?.isCompleted">
+                ✓ Ya has descargado este recurso (Lección Completada)
+              </div>
+            </div>
+          </div>
+        </section>
+
         <!-- Lesson Metadata & Comments -->
         <section class="lesson-metadata">
           <div class="info-card-premium glass">
@@ -122,7 +165,7 @@
 
             <div class="card-body" *ngIf="isInfoExpanded">
               <div class="rich-text">
-                <p>Bienvenido a esta lección estratégica. Aquí profundizaremos en los pilares que hacen que una marca sea memorable y coherente en el mercado actual.</p>
+                <p>{{ currentLesson?.description || 'Esta lección no tiene una descripción detallada.' }}</p>
               </div>
 
               <!-- Resources -->

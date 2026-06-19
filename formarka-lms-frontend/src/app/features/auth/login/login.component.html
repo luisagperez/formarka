@@ -22,7 +22,7 @@
       </app-form-field>
 
       <div class="auth-actions">
-        <a routerLink="/auth/forgot-password" class="forgot-password">¿Olvidaste tu contraseña?</a>
+        <a href="#" (click)="navigateToForgot($event)" class="forgot-password">¿Olvidaste tu contraseña?</a>
       </div>
 
       <app-button 
@@ -34,7 +34,7 @@
     </form>
 
     <div class="auth-footer">
-      <p>¿No tienes una cuenta? <a routerLink="/auth/register">Regístrate aquí</a></p>
+      <p>¿No tienes una cuenta? <a href="#" (click)="navigateToRegister($event)">Regístrate aquí</a></p>
     </div>
   </div>
 

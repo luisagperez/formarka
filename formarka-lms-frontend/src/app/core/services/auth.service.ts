@@ -36,7 +36,10 @@ export class AuthService {
       console.log('Auth State Change:', event);
       this.updateCurrentUser(session?.user ?? null);
       
-      if (event === 'SIGNED_IN' && session) {
+      if (event === 'PASSWORD_RECOVERY') {
+        // Redirect specifically to the reset password page when the event is recovery
+        this.router.navigate(['/auth/reset-password']);
+      } else if (event === 'SIGNED_IN' && session) {
         // When signing in (or returning from email confirmation), check if profile is complete
         this.checkProfileAndRedirect(session.user.id);
       }
@@ -127,6 +130,31 @@ export class AuthService {
     await this.supabase.auth.signOut();
     // Use NgZone or direct location change to ensure state is cleared
     window.location.href = '/auth/login';
+  }
+
+  /**
+   * Sends a password reset email to the user.
+   */
+  async resetPassword(email: string) {
+    // Force the exact route to ensure Supabase matches it against the Redirect Whitelist
+    const redirectTo = `${window.location.origin}/auth/reset-password`;
+    console.log('--- SOLICITUD DE RESET ---');
+    console.log('Email:', email);
+    console.log('RedirectTo:', redirectTo);
+    
+    return this.supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: redirectTo,
+    });
+  }
+
+  /**
+   * Updates the user's password. 
+   * This should be called when the user is authenticated (e.g. via recovery link).
+   */
+  async updatePassword(newPassword: string) {
+    return this.supabase.auth.updateUser({
+      password: newPassword
+    });
   }
 
   logout() {

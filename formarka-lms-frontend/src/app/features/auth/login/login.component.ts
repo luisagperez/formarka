@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormControl } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { FormFieldComponent } from '../../../shared/components/form-field/form-field.component';
@@ -22,7 +22,6 @@ import { FormFieldComponent } from '../../../shared/components/form-field/form-f
   imports: [
     CommonModule, 
     ReactiveFormsModule, 
-    RouterModule,
     ButtonComponent,
     FormFieldComponent
   ],
@@ -87,5 +86,17 @@ export class LoginComponent {
 
   closeErrorModal(): void {
     this.showErrorModal = false;
+  }
+
+  navigateToForgot(event: Event): void {
+    event.preventDefault();
+    console.log('Navigating to forgot password');
+    this.router.navigate(['/auth/forgot-password']);
+  }
+
+  navigateToRegister(event: Event): void {
+    event.preventDefault();
+    console.log('Navigating to register');
+    this.router.navigate(['/auth/register']);
   }
 }
